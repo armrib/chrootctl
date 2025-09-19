@@ -1,2 +1,6 @@
 # Vim tags
 tags
+
+# Local test files
+.cache/
+.db
