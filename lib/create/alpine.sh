@@ -10,34 +10,34 @@ create_alpine() {
     exit 1
   fi
 
-  url="http://dl-cdn.alpinelinux.org/alpine/v3.22/releases/x86_64/alpine-minirootfs-3.22.0-x86_64.tar.gz"
+  local url="http://dl-cdn.alpinelinux.org/alpine/v3.22/releases/x86_64/alpine-minirootfs-3.22.0-x86_64.tar.gz"
 
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      -u | --url)
-        url="$2"
-        shift 2
-        ;;
-      -h | --help)
+    -u | --url)
+      url="$2"
+      shift 2
+      ;;
+    -h | --help)
+      show_help_create_alpine
+      exit 0
+      ;;
+    *)
+      if [ -n "${1:-}" ]; then
+        echo "Unknown option ($1)"
         show_help_create_alpine
-        exit 0
-        ;;
-      *)
-        if [ -n "${1:-}" ]; then
-          echo "Unknown option ($1)"
-          show_help_create_alpine
-          exit 1
-        else
-          shift
-        fi
-        ;;
+        exit 1
+      else
+        shift
+      fi
+      ;;
     esac
   done
 
   # Check file extension
   case "$url" in
-    *.tar.gz) echo "File format tar.gz supported" ;;
-    *) echo "Unsupported file format: $(basename $url)" && exit 1 ;;
+  *.tar.gz) echo "File format tar.gz supported" ;;
+  *) echo "Unsupported file format: $(basename $url)" && exit 1 ;;
   esac
 
   # Download the file if it doesn't exist

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-source "$LIB/db.sh"
+source "$LIB/utils/db.sh"
 
 save_chroot() {
   if [ -n "${1:-}" ]; then
@@ -13,40 +13,40 @@ save_chroot() {
   fi
 
   # Check if the name exists
-  chroot_params=$(chroot_exists "$chroot_name" all)
+  local chroot_params=$(chroot_exists "$chroot_name" all)
   if [ -z "$chroot_params" ]; then
     echo "Chroot environment $chroot_name does not exist."
     exit 1
   fi
 
-  chroot_dir=$(echo "$chroot_params" | awk '{print $2}')
-  chroot_type=$(echo "$chroot_params" | awk '{print $3}')
-  chroot_shell=$(echo "$chroot_params" | awk '{print $4}')
-  chroot_mount_ro=$(echo "$chroot_params" | awk '{print $5}')
-  chroot_mount_rw=$(echo "$chroot_params" | awk '{print $6}')
+  local chroot_dir=$(echo "$chroot_params" | awk '{print $2}')
+  local chroot_type=$(echo "$chroot_params" | awk '{print $3}')
+  local chroot_shell=$(echo "$chroot_params" | awk '{print $4}')
+  local chroot_mount_ro=$(echo "$chroot_params" | awk '{print $5}')
+  local chroot_mount_rw=$(echo "$chroot_params" | awk '{print $6}')
 
-  chroot_path="${chroot_dir}/${chroot_name}"
-  save_chroot_name="$chroot_name"
-  force=false
+  local chroot_path="${chroot_dir}/${chroot_name}"
+  local save_chroot_name="$chroot_name"
+  local force=false
 
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      -n | --name)
-        save_chroot_name="$2"
-        shift 2
-        ;;
-      -f | --force)
-        force=true
-        shift
-        ;;
-      -h | --help)
-        show_help_enter
-        exit 0
-        ;;
-      *)
-        echo "Unknown option: $1"
-        exit 1
-        ;;
+    -n | --name)
+      save_chroot_name="$2"
+      shift 2
+      ;;
+    -f | --force)
+      force=true
+      shift
+      ;;
+    -h | --help)
+      show_help_enter
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
     esac
   done
 
@@ -54,12 +54,13 @@ save_chroot() {
   for file in $CHROOT_CACHE_DIR/*.tar.gz; do
     [ -f "$file" ] && [ "$force" = "false" ] && [ "$file" = "$CHROOT_CACHE_DIR/${save_chroot_name}.tar.gz" ] && echo "Error: Artefact $save_chroot_name already exists." && exit 1
   done
+  unset file
 
   source "$LIB/delete.sh"
-
   # Kill all chroot processes
   wait_and_kill_all_chroot_process "$chroot_path"
 
+  source "$LIB/utils/mount.sh"
   # Unmount all filesystems under the chroot
   unmount_chroot "$chroot_path"
 

@@ -9,19 +9,19 @@ list_chroots() {
   fi
 
   # Define variables
-  rows="" col1_width=4 col2_width=4 col3_width=4 col4_width=5 col5_width=12 col6_width=13
+  local rows="" col1_width=4 col2_width=4 col3_width=4 col4_width=5 col5_width=12 col6_width=13
 
   # Read rows and update column widths
   while IFS= read -r line; do
-    name=$(echo "$line" | awk '{print $1}')
-    dir=$(echo "$line" | awk '{print $2}')
-    type=$(echo "$line" | awk '{print $3}')
-    shell=$(echo "$line" | awk '{print $4}')
-    mount_private=$(echo "$line" | awk '{print $5}')
-    mount_shared=$(echo "$line" | awk '{print $6}')
+    local name=$(echo "$line" | awk '{print $1}')
+    local dir=$(echo "$line" | awk '{print $2}')
+    local type=$(echo "$line" | awk '{print $3}')
+    local shell=$(echo "$line" | awk '{print $4}')
+    local mount_private=$(echo "$line" | awk '{print $5}')
+    local mount_shared=$(echo "$line" | awk '{print $6}')
 
     # Update column widths for Name
-    len=$(printf "%s" "$name" | wc -c)
+    local len=$(printf "%s" "$name" | wc -c)
     [ "$len" -gt "$col1_width" ] && col1_width=$len
 
     # Update column widths for Path
@@ -44,6 +44,7 @@ list_chroots() {
     len=$(printf "%s" "$mount_shared" | wc -c)
     [ "$len" -gt "$col6_width" ] && col6_width=$len
   done <"$DB"
+  unset line
 
   # Print header
   printf "%-*s  %-*s  %-*s  %-*s  %-*s  %-*s\n" "$col1_width" "Name" "$col2_width" "Path" "$col3_width" "Type" "$col4_width" "Shell" "$col5_width" "Mount Private" "$col6_width" "Mount Shared"
@@ -55,12 +56,13 @@ list_chroots() {
   while IFS= read -r line; do
     [ -z "$line" ] && continue
     echo "$line" | grep -q '^#' && continue
-    name=$(echo "$line" | awk '{print $1}')
-    dir=$(echo "$line" | awk '{print $2}')
-    type=$(echo "$line" | awk '{print $3}')
-    shell=$(echo "$line" | awk '{print $4}')
-    mount_private=$(echo "$line" | awk '{print $5}')
-    mount_shared=$(echo "$line" | awk '{print $6}')
+    local name=$(echo "$line" | awk '{print $1}')
+    local dir=$(echo "$line" | awk '{print $2}')
+    local type=$(echo "$line" | awk '{print $3}')
+    local shell=$(echo "$line" | awk '{print $4}')
+    local mount_private=$(echo "$line" | awk '{print $5}')
+    local mount_shared=$(echo "$line" | awk '{print $6}')
     printf "%-*s  %-*s  %-*s  %-*s  %-*s  %-*s\n" "$col1_width" "$name" "$col2_width" "$dir" "$col3_width" "$type" "$col4_width" "$shell" "$col5_width" "$mount_private" "$col6_width" "$mount_shared"
   done <"$DB"
+  unset line
 }

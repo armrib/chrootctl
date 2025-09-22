@@ -7,4 +7,5 @@ list_saved() {
     [ -f "$file" ] || continue
     echo "- $(basename $file)"
   done
+  unset file
 }

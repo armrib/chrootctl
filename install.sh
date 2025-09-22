@@ -40,6 +40,7 @@ for dir in "$INSTALL_DIR" "$BIN_DIR" "$LIB_DIR" "$DATA_DIR" "$DIST_CACHE_DIR" "$
   mkdir -p "$dir"
   chmod 700 "$dir"
 done
+unset dir
 
 # Copy script files
 echo -e "${YELLOW}Installing script files...${NC}"

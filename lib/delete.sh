@@ -1,11 +1,11 @@
 #!/bin/sh
 
-source "$LIB/db.sh"
+source "$LIB/utils/db.sh"
 
 # Function to delete the chroot environment
 delete_chroot() {
   if [ -n "${1:-}" ]; then
-    chroot_name=$1
+    readonly chroot_name=$1
     shift
   else
     echo "Missing chroot name"
@@ -13,28 +13,30 @@ delete_chroot() {
     exit 1
   fi
 
-  chroot_dir=$(chroot_exists "$chroot_name" dir)
-  chroot_path="${chroot_dir}/${chroot_name}"
+  local chroot_dir=$(chroot_exists "$chroot_name" dir)
+  local chroot_path="${chroot_dir}/${chroot_name}"
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      -f | --force)
-        chroot_dir="$2"
-        chroot_path="${chroot_dir}/${chroot_name}"
-        shift 2
-        ;;
-      -h | --help)
-        show_help_delete
-        exit 0
-        ;;
-      *)
-        echo "Unknown option: $1"
-        exit 1
-        ;;
+    -f | --force)
+      chroot_dir="${2:-}"
+      [ -z "$chroot_dir" ] && echo "Error: Missing chroot directory!" && exit 1
+      chroot_path="${chroot_dir}/${chroot_name}"
+      [ ! -d "$chroot_path" ] && echo "Error: Chroot directory $chroot_path does not exist!" && exit 1
+      shift 2
+      ;;
+    -h | --help)
+      show_help_delete
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
     esac
   done
 
   # Check if the name exists
-  if [ -z "$chroot_path" ]; then
+  if [ -z "$chroot_dir" ]; then
     echo "Chroot environment $chroot_name ${chroot_dir:+at $chroot_dir} does not exist."
     exit 1
   fi
@@ -43,6 +45,7 @@ delete_chroot() {
   wait_and_kill_all_chroot_process "$chroot_path"
 
   # Unmount all filesystems under the chroot
+  source "$LIB/utils/mount.sh"
   unmount_chroot "$chroot_path"
 
   echo "Removing $chroot_path"
@@ -51,7 +54,7 @@ delete_chroot() {
   # Remove chroot from DB (POSIX-compliant)
   if [ -f "$DB" ] && [ -w "$DB" ]; then
     echo "Removing chroot from DB..."
-    tmpfile=$(mktemp) || {
+    local tmpfile=$(mktemp) || {
       echo "Error: Failed to create temporary file." >&2
       exit 1
     }
@@ -72,9 +75,10 @@ delete_chroot() {
 }
 
 wait_and_kill_all_chroot_process() {
-  chroot_path="$1"
+  local chroot_path="$1"
   # Kill all processes that have some file opened in the chroot, except this script.
   echo 'Terminating remaining processes in the chroot...'
+  local processes_remaining
   if ! kill_chroot_process "$chroot_path"; then
     echo "Found processes in chroot, sending SIGTERM..."
     processes_remaining=true
@@ -91,38 +95,28 @@ wait_and_kill_all_chroot_process() {
 
 }
 
-unmount_chroot() {
-  chroot_path="$1"
-  # Unmounts all filesystem under the specified directory tree.
-  echo "Unmounting remaining filesystems..."
-  for path in $(cat /proc/mounts | cut -d' ' -f2 | grep "^$chroot_path." | sort -r); do
-    echo "Unmounting $path"
-    umount -fn "$path"
-  done
-}
-
 kill_chroot_process() {
-  chroot_path="$1"
-  force="${2:-false}"
-  found=0
+  local chroot_path="$1"
+  local force="${2:-false}"
+  local found=0
 
   for proc_root in /proc/[0-9]*/root; do
     if [ -L "$proc_root" ]; then
-      link=$(readlink "$proc_root" 2>/dev/null)
+      local link=$(readlink "$proc_root" 2>/dev/null)
       if [ -n "$link" ]; then
         # POSIX-compliant string prefix check
         case "$link" in
-          "$chroot_path"*)
-            pid=$(basename "$(dirname "$proc_root")")
-            if [ "$force" = "true" ]; then
-              echo "Sending SIGKILL to $pid"
-              kill -9 "$pid"
-            else
-              echo "Sending SIGTERM to $pid"
-              kill "$pid"
-            fi
-            found=1
-            ;;
+        "$chroot_path"*)
+          local pid=$(basename "$(dirname "$proc_root")")
+          if [ "$force" = "true" ]; then
+            echo "Sending SIGKILL to $pid"
+            kill -9 "$pid"
+          else
+            echo "Sending SIGTERM to $pid"
+            kill "$pid"
+          fi
+          found=1
+          ;;
         esac
       fi
     fi

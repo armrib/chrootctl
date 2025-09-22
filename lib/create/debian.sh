@@ -10,27 +10,27 @@ create_debian() {
     exit 1
   fi
 
-  suite="stable"
+  local suite="stable"
 
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      -s | --suite)
-        suite="$2"
-        shift 2
-        ;;
-      -h | --help)
+    -s | --suite)
+      suite="$2"
+      shift 2
+      ;;
+    -h | --help)
+      show_help_create_debian
+      exit 0
+      ;;
+    *)
+      if [ -n "${1:-}" ]; then
+        echo "Unknown option ($1)"
         show_help_create_debian
-        exit 0
-        ;;
-      *)
-        if [ -n "${1:-}" ]; then
-          echo "Unknown option ($1)"
-          show_help_create_debian
-          exit 1
-        else
-          shift
-        fi
-        ;;
+        exit 1
+      else
+        shift
+      fi
+      ;;
     esac
   done
 
@@ -57,7 +57,7 @@ create_debian() {
 show_help_create_debian() {
   cat <<EOF
 Chrootctl v${VERSION}
-Usage: $PROGRAM_NAME create $(basename chroot_path) -t debian [options]
+Usage: $PROGRAM_NAME create $(basename $chroot_path) -t debian [options]
 Options:
   -s, --suite <suite> Debian suite to use (stable, testing, ...) (default: stable)
   -d, --dir   <path>  Path to the chroot environment (default: /tmp)
