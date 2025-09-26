@@ -46,7 +46,7 @@ enter_chroot() {
     esac
   done
 
-  local private_mounts=$(echo "$chroot_mount_private" | tr ',' ' ' | sed 's#default#/proc /dev /sys#g')
+  local private_mounts=$(echo "$chroot_mount_private" | tr ',' ' ' | sed "s#default#/proc /dev $([ $chroot_type = "arch" ] && echo /dev/pts) /sys#g")
   local shared_mounts=$(echo "$chroot_mount_shared" | tr ',' ' ')
   local current_mounts=$(cat /proc/mounts | cut -d' ' -f2)
 

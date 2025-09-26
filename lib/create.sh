@@ -29,6 +29,19 @@ create_chroot() {
     exit 1
   fi
 
+  if sysctl -ne kernel.grsecurity.chroot_deny_chmod; then
+    echo "Warning: can't suid/sgid inside chroot" >&2
+  fi
+  if sysctl -ne kernel.grsecurity.chroot_deny_chroot; then
+    echo "Warning: can't chroot inside chroot" >&2
+  fi
+  if sysctl -ne kernel.grsecurity.chroot_deny_mknod; then
+    echo "Warning: can't mknod inside chroot" >&2
+  fi
+  if sysctl -ne kernel.grsecurity.chroot_deny_mount; then
+    echo "Warning: can't mount inside chroot" >&2
+  fi
+
   #Default values
   local chroot_dir="/tmp"
   local chroot_type="alpine"
@@ -87,11 +100,15 @@ create_chroot() {
     case "$chroot_type" in
     alpine)
       source "$LIB/create/alpine.sh"
-      create_alpine "$chroot_path" "${args:-}"
+      create_alpine "$chroot_path" ${args:-}
       ;;
     debian)
       source "$LIB/create/debian.sh"
-      create_debian "${chroot_path}" "${args:-}"
+      create_debian "${chroot_path}" ${args:-}
+      ;;
+    arch)
+      source "$LIB/create/arch.sh"
+      create_arch "${chroot_path}" ${args:-}
       ;;
     *)
       echo "Unknown chroot type: $chroot_type"
@@ -112,6 +129,7 @@ create_chroot() {
       mount_proc "$chroot_path"
       mount_bind_private /dev "$chroot_path/dev"
       mount_bind_private /sys "$chroot_path/sys"
+      [ "$chroot_type" = "arch" ] && mount_bind_private /dev/pts "$chroot_path/dev/pts"
       private_mounts="$private_mounts default"
       ;;
     /*)
