@@ -10,8 +10,8 @@ fi
 
 # Global variables
 readonly PROGRAM_NAME="chrootctl"
-readonly VERSION="0.2.0"
-readonly REPOSITORY="https://github.com/armrib/alpine-chrootctl"
+readonly VERSION="0.4.0"
+readonly REPOSITORY="https://github.com/armrib/chrootctl"
 readonly SCRIPT_NAME=$(basename $0)
 
 # Global variables based on script name
@@ -61,38 +61,38 @@ fi
 
 # Main script logic
 case "$COMMAND" in
-  create)
-    source "$LIB/create.sh"
-    create_chroot "$@"
-    ;;
-  enter)
-    source "$LIB/enter.sh"
-    enter_chroot "$@"
-    ;;
-  save)
-    source "$LIB/save.sh"
-    save_chroot "$@"
-    ;;
-  delete)
-    source "$LIB/delete.sh"
-    delete_chroot "$@"
-    ;;
-  list)
-    source "$LIB/list.sh"
-    list_chroots
-    ;;
-  cache)
-    source "$LIB/cache.sh"
-    list_cache
-    ;;
-  saved)
-    source "$LIB/saved.sh"
-    list_saved
-    ;;
-  version)
-    echo "Chrootctl v${VERSION}"
-    ;;
-  *)
-    show_help
-    ;;
+create)
+  source "$LIB/create.sh"
+  create_chroot "$@"
+  ;;
+enter)
+  source "$LIB/enter.sh"
+  enter_chroot "$@"
+  ;;
+save)
+  source "$LIB/save.sh"
+  save_chroot "$@"
+  ;;
+delete)
+  source "$LIB/delete.sh"
+  delete_chroot "$@"
+  ;;
+list)
+  source "$LIB/list.sh"
+  list_chroots
+  ;;
+cache)
+  source "$LIB/cache.sh"
+  list_cache
+  ;;
+saved)
+  source "$LIB/saved.sh"
+  list_saved
+  ;;
+version)
+  echo "Chrootctl v${VERSION}"
+  ;;
+*)
+  show_help
+  ;;
 esac

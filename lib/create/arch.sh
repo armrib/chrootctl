@@ -31,14 +31,16 @@ create_arch() {
   done
 
   # Download the file if it doesn't exist
-  if [ ! -f "$DIST_CACHE_DIR/arch-bootstrap.sh" ]; then
+  if [ ! -f "$DIST_CACHE_DIR/arch.sh" ]; then
     echo "Downloading $url"
     wget "$url" -O "$DIST_CACHE_DIR/arch-bootstrap.sh"
+    apk add bash zstd curl
+    bash "$DIST_CACHE_DIR/arch-bootstrap.sh" "$chroot_path"
+    tar -xzf "$DIST_CACHE_DIR/arch.tar.gz" -C "$chroot_path"
+  else
+    # Extract the file
+    tar -xzf "$DIST_CACHE_DIR/arch.tar.gz" -C "$chroot_path"
   fi
-
-  # Extract the file
-  apk add bash zstd curl
-  bash "$DIST_CACHE_DIR/arch-bootstrap.sh" "$chroot_path"
 }
 
 show_help_create_alpine() {
