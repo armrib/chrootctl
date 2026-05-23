@@ -197,22 +197,20 @@ create_chroot() {
 }
 
 show_help_create() {
-  cat <<EOF
-Chrootctl create v${VERSION}
-Usage: $PROGRAM_NAME create [options]
-Options:
-  -t, --type      <type>  Type of chroot environment (alpine, debian) (default: alpine)
-  -d, --dir       <path>  Path to the chroot environment (default: /tmp)
-  --shell         <shell> Default shell to use (default: /bin/sh)
-  --mount-private <path>  Private mount point (default, [path])
-  --mount-shared  <path>  Shared mount point
-  --from-local    <name>  Restore chroot from local cache
-  -h, --help              Show this help message
-Examples:
-  $PROGRAM_NAME create test
-  $PROGRAM_NAME create test -d /tmp/chroot
-  $PROGRAM_NAME create test --mount-private default
-  $PROGRAM_NAME create test --mount-shared /your/path
-For more information, visit: $REPOSITORY
-EOF
+  printf '%b\n' "${BOLD}${BLUE}Chrootctl create v${VERSION}${NC}"
+  printf '%b\n' "${BOLD}${CYAN}Usage:${NC} $PROGRAM_NAME create [options]"
+  printf '%b\n' "${BOLD}${CYAN}Options:${NC}"
+  printf '%b\n' "  ${GREEN}-t, --type${NC}      <type>  Type of chroot environment (alpine, debian) (default: alpine)"
+  printf '%b\n' "  ${GREEN}-d, --dir${NC}       <path>  Path to the chroot environment (default: /tmp)"
+  printf '%b\n' "  ${GREEN}--shell${NC}         <shell> Default shell to use (default: /bin/sh)"
+  printf '%b\n' "  ${GREEN}--mount-private${NC} <path>  Private mount point (default, [path])"
+  printf '%b\n' "  ${GREEN}--mount-shared${NC}  <path>  Shared mount point"
+  printf '%b\n' "  ${GREEN}--from-local${NC}    <name>  Restore chroot from local cache"
+  printf '%b\n' "  ${GREEN}-h, --help${NC}              Show this help message"
+  printf '%b\n' "${BOLD}${CYAN}Examples:${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test -d /tmp/chroot${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test --mount-private default${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test --mount-shared /your/path${NC}"
+  printf '%b\n' "${BOLD}${CYAN}For more information, visit:${NC} $REPOSITORY"
 }

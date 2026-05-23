@@ -73,15 +73,13 @@ save_chroot() {
 }
 
 show_help_save() {
-  cat <<EOF
-Chrootctl save v${VERSION}
-Usage: $PROGRAM_NAME save ${chroot_name:-} [options]
-Options:
-  -n, --name            Name of the saved chroot environment
-  -h, --help            Show this help message
-Examples:
-  $PROGRAM_NAME save test
-  $PROGRAM_NAME save test -n package-testing
-For more information, visit: $REPOSITORY
-EOF
+  printf '%b\n' "${BOLD}${BLUE}Chrootctl save v${VERSION}${NC}"
+  printf '%b\n' "${BOLD}${CYAN}Usage:${NC} $PROGRAM_NAME save ${chroot_name:-} [options]"
+  printf '%b\n' "${BOLD}${CYAN}Options:${NC}"
+  printf '%b\n' "  ${GREEN}-n, --name${NC}            Name of the saved chroot environment"
+  printf '%b\n' "  ${GREEN}-h, --help${NC}            Show this help message"
+  printf '%b\n' "${BOLD}${CYAN}Examples:${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME save test${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME save test -n package-testing${NC}"
+  printf '%b\n' "${BOLD}${CYAN}For more information, visit:${NC} $REPOSITORY"
 }

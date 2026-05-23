@@ -55,16 +55,15 @@ create_debian() {
 }
 
 show_help_create_debian() {
-  cat <<EOF
-Chrootctl v${VERSION}
-Usage: $PROGRAM_NAME create $(basename $chroot_path) -t debian [options]
-Options:
-  -s, --suite <suite> Debian suite to use (stable, testing, ...) (default: stable)
-  -d, --dir   <path>  Path to the chroot environment (default: /tmp)
-  -h, --help          Show this help message
-Examples:
-  $PROGRAM_NAME create test
-  $PROGRAM_NAME create test -d /tmp/chroot
-For more information, visit: $REPOSITORY
-EOF
+  source "$LIB/utils/colors.sh"
+  printf '%b\n' "${BOLD}${BLUE}Chrootctl v${VERSION}${NC}"
+  printf '%b\n' "${BOLD}${CYAN}Usage:${NC} $PROGRAM_NAME create $(basename $chroot_path) -t debian [options]"
+  printf '%b\n' "${BOLD}${CYAN}Options:${NC}"
+  printf '%b\n' "  ${GREEN}-s, --suite${NC} <suite> Debian suite to use (stable, testing, ...) (default: stable)"
+  printf '%b\n' "  ${GREEN}-d, --dir${NC}   <path>  Path to the chroot environment (default: /tmp)"
+  printf '%b\n' "  ${GREEN}-h, --help${NC}          Show this help message"
+  printf '%b\n' "${BOLD}${CYAN}Examples:${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test -d /tmp/chroot${NC}"
+  printf '%b\n' "${BOLD}${CYAN}For more information, visit:${NC} $REPOSITORY"
 }

@@ -43,15 +43,14 @@ create_arch() {
   fi
 }
 
-show_help_create_alpine() {
-  cat <<EOF
-Chrootctl v${VERSION}
-Usage: $PROGRAM_NAME create $(basename $chroot_path) -t arch [options]
-Options:
-  -h, --help       Show this help message
-Examples:
-  $PROGRAM_NAME create test -t arch
-  $PROGRAM_NAME create test -t arch -d /tmp/chroot
-For more information, visit: $REPOSITORY
-EOF
+show_help_create_arch() {
+  source "$LIB/utils/colors.sh"
+  printf '%b\n' "${BOLD}${BLUE}Chrootctl v${VERSION}${NC}"
+  printf '%b\n' "${BOLD}${CYAN}Usage:${NC} $PROGRAM_NAME create $(basename $chroot_path) -t arch [options]"
+  printf '%b\n' "${BOLD}${CYAN}Options:${NC}"
+  printf '%b\n' "  ${GREEN}-h, --help${NC}       Show this help message"
+  printf '%b\n' "${BOLD}${CYAN}Examples:${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test -t arch${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test -t arch -d /tmp/chroot${NC}"
+  printf '%b\n' "${BOLD}${CYAN}For more information, visit:${NC} $REPOSITORY"
 }

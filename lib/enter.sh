@@ -85,15 +85,13 @@ enter_chroot() {
 }
 
 show_help_enter() {
-  cat <<EOF
-Chrootctl enter v${VERSION}
-Usage: $PROGRAM_NAME enter ${chroot_name:-} [options]
-Options:
-  --shell <shell>       Default shell to use (default: /bin/sh)
-  -h, --help            Show this help message
-Examples:
-  $PROGRAM_NAME enter test
-  $PROGRAM_NAME enter test --shell /bin/bash
-For more information, visit: $REPOSITORY
-EOF
+  printf '%b\n' "${BOLD}${BLUE}Chrootctl enter v${VERSION}${NC}"
+  printf '%b\n' "${BOLD}${CYAN}Usage:${NC} $PROGRAM_NAME enter ${chroot_name:-} [options]"
+  printf '%b\n' "${BOLD}${CYAN}Options:${NC}"
+  printf '%b\n' "  ${GREEN}--shell${NC} <shell>       Default shell to use (default: /bin/sh)"
+  printf '%b\n' "  ${GREEN}-h, --help${NC}            Show this help message"
+  printf '%b\n' "${BOLD}${CYAN}Examples:${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME enter test${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME enter test --shell /bin/bash${NC}"
+  printf '%b\n' "${BOLD}${CYAN}For more information, visit:${NC} $REPOSITORY"
 }

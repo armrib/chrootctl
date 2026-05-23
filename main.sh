@@ -2,11 +2,6 @@
 
 set -euo pipefail # Exit on error, undefined variables, and pipe failures
 
-# Escalate to root with doas if not already running as root
-if [ "$(id -u)" -ne 0 ]; then
-  exec doas "$0" "$@"
-fi
-
 # Global variables
 readonly PROGRAM_NAME="chrootctl"
 readonly VERSION="0.4.0"
@@ -29,24 +24,23 @@ else
 fi
 
 show_help() {
-  cat <<EOF
-Chrootctl v${VERSION}
-Usage: $PROGRAM_NAME {action} [options]
-Actions:
-  create Create a chroot environment
-  enter  Enter a chroot environment
-  save   Save a chroot environment
-  delete Delete a chroot environment
-  list   List all chroot environments
-  cache  List all cached distributions
-  saved  List all saved chroot environments
-  help   Show help
-Examples:
-  $PROGRAM_NAME create test
-  $PROGRAM_NAME enter test
-  $PROGRAM_NAME delete test
-For more information, visit: $REPOSITORY
-EOF
+  source "$LIB/utils/colors.sh"
+  printf '%b\n' "${BOLD}${BLUE}Chrootctl v${VERSION}${NC}"
+  printf '%b\n' "${BOLD}${CYAN}Usage:${NC} $PROGRAM_NAME {action} [options]"
+  printf '%b\n' "${BOLD}${CYAN}Actions:${NC}"
+  printf '%b\n' "  ${GREEN}create${NC} Create a chroot environment"
+  printf '%b\n' "  ${GREEN}enter${NC}  Enter a chroot environment"
+  printf '%b\n' "  ${GREEN}save${NC}   Save a chroot environment"
+  printf '%b\n' "  ${GREEN}delete${NC} Delete a chroot environment"
+  printf '%b\n' "  ${GREEN}list${NC}   List all chroot environments"
+  printf '%b\n' "  ${GREEN}cache${NC}  List all cached distributions"
+  printf '%b\n' "  ${GREEN}saved${NC}  List all saved chroot environments"
+  printf '%b\n' "  ${GREEN}help${NC}   Show help"
+  printf '%b\n' "${BOLD}${CYAN}Examples:${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME enter test${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME delete test${NC}"
+  printf '%b\n' "${BOLD}${CYAN}For more information, visit:${NC} $REPOSITORY"
 }
 
 # Parse command-line arguments

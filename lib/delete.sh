@@ -127,15 +127,13 @@ kill_chroot_process() {
 }
 
 show_help_delete() {
-  cat <<EOF
-Chrootctl delete v${VERSION}
-Usage: $PROGRAM_NAME delete ${chroot_name:-} [options]
-Options:
-  -f, --force           Force deletion of the chroot environment
-  -h, --help            Show this help message
-Examples:
-  $PROGRAM_NAME delete test
-  $PROGRAM_NAME delete test --force /tmp/chroot
-For more information, visit: $REPOSITORY
-EOF
+  printf '%b\n' "${BOLD}${BLUE}Chrootctl delete v${VERSION}${NC}"
+  printf '%b\n' "${BOLD}${CYAN}Usage:${NC} $PROGRAM_NAME delete ${chroot_name:-} [options]"
+  printf '%b\n' "${BOLD}${CYAN}Options:${NC}"
+  printf '%b\n' "  ${GREEN}-f, --force${NC}           Force deletion of the chroot environment"
+  printf '%b\n' "  ${GREEN}-h, --help${NC}            Show this help message"
+  printf '%b\n' "${BOLD}${CYAN}Examples:${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME delete test${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME delete test --force /tmp/chroot${NC}"
+  printf '%b\n' "${BOLD}${CYAN}For more information, visit:${NC} $REPOSITORY"
 }
