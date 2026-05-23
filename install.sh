@@ -28,24 +28,24 @@ readonly YELLOW='\033[1;33m'
 readonly BLUE='\033[0;34m'
 readonly NC='\033[0m' # No Color
 
-echo -e "${GREEN}================================================${NC}"
-echo -e "${GREEN}   $PROGRAM_NAME Installation${NC}"
-echo -e "${GREEN}================================================${NC}"
+printf '%b\n' "${GREEN}================================================${NC}"
+printf '%b\n' "${GREEN}   $PROGRAM_NAME Installation${NC}"
+printf '%b\n' "${GREEN}================================================${NC}"
 echo
 
 # Create installation directories
-echo -e "${YELLOW}Creating installation directories...${NC}"
+printf '%b\n' "${YELLOW}Creating installation directories...${NC}"
 mkdir -p "$INSTALL_DIR" "$BIN_DIR" "$LIB_DIR"
 chmod 755 "$INSTALL_DIR" "$BIN_DIR" "$LIB_DIR"
 mkdir -p "$DATA_DIR" "$DIST_CACHE_DIR" "$CHROOT_CACHE_DIR"
 chmod 700 "$DATA_DIR" "$DIST_CACHE_DIR" "$CHROOT_CACHE_DIR"
 
 # Copy script files
-echo -e "${YELLOW}Installing script files...${NC}"
+printf '%b\n' "${YELLOW}Installing script files...${NC}"
 
 # Check if scripts exist in current directory
 if [ ! -f "$SCRIPT_DIR/main.sh" ]; then
-  echo -e "${RED}Error: main.sh not found in current directory${NC}"
+  printf '%b\n' "${RED}Error: main.sh not found in current directory${NC}"
   exit 1
 fi
 
@@ -62,10 +62,10 @@ chmod 600 "$DATA_DIR/db"
 
 # Create symbolic link for easy execution
 ln -sf "$INSTALL_DIR/$PROGRAM_NAME" "$BIN_DIR/$PROGRAM_NAME"
-echo -e "${GREEN}✓${NC} Created command: $PROGRAM_NAME"
+printf '%b\n' "${GREEN}✓${NC} Created command: $PROGRAM_NAME"
 
 # Create uninstall script
-echo -e "${YELLOW}Creating uninstall script...${NC}"
+printf '%b\n' "${YELLOW}Creating uninstall script...${NC}"
 cat <<EOF >"$INSTALL_DIR/uninstall.sh"
 #!/bin/sh
 # $PROGRAM_NAME Uninstaller
@@ -87,38 +87,38 @@ rm -rf "$DATA_DIR"
 echo "$PROGRAM_NAME has been uninstalled"
 EOF
 chmod 700 "$INSTALL_DIR/uninstall.sh"
-echo -e "${GREEN}✓${NC} Uninstall script created"
+printf '%b\n' "${GREEN}✓${NC} Uninstall script created"
 
 # Display installation summary
 echo
-echo -e "${GREEN}================================================${NC}"
-echo -e "${GREEN}   Installation Complete!${NC}"
-echo -e "${GREEN}================================================${NC}"
+printf '%b\n' "${GREEN}================================================${NC}"
+printf '%b\n' "${GREEN}   Installation Complete!${NC}"
+printf '%b\n' "${GREEN}================================================${NC}"
 echo
-echo -e "${GREEN}Installation Summary:${NC}"
-echo -e "  • Main script: $INSTALL_DIR/$PROGRAM_NAME"
-echo -e "  • Command: $PROGRAM_NAME"
+printf '%b\n' "${GREEN}Installation Summary:${NC}"
+printf '%b\n' "  • Main script: $INSTALL_DIR/$PROGRAM_NAME"
+printf '%b\n' "  • Command: $PROGRAM_NAME"
 echo
-echo -e "${GREEN}Usage Examples:${NC}"
-echo -e "  • Create a new chroot with default settings:"
-echo -e "    ${YELLOW}$PROGRAM_NAME create test${NC}"
+printf '%b\n' "${GREEN}Usage Examples:${NC}"
+printf '%b\n' "  • Create a new chroot with default settings:"
+printf '%b\n' "    ${YELLOW}$PROGRAM_NAME create test${NC}"
 echo
-echo -e "  • Create a new debian chroot:"
-echo -e "    ${YELLOW}$PROGRAM_NAME create debian -t debian${NC}"
+printf '%b\n' "  • Create a new debian chroot:"
+printf '%b\n' "    ${YELLOW}$PROGRAM_NAME create debian -t debian${NC}"
 echo
-echo -e "  • Enter the chroot:"
-echo -e "    ${YELLOW}$PROGRAM_NAME enter test${NC}"
+printf '%b\n' "  • Enter the chroot:"
+printf '%b\n' "    ${YELLOW}$PROGRAM_NAME enter test${NC}"
 echo
-echo -e "  • Delete the chroot:"
-echo -e "    ${YELLOW}$PROGRAM_NAME delete test${NC}"
+printf '%b\n' "  • Delete the chroot:"
+printf '%b\n' "    ${YELLOW}$PROGRAM_NAME delete test${NC}"
 echo
-echo -e "${GREEN}Uninstall:${NC}"
-echo -e "  • To uninstall, run:"
-echo -e "    ${YELLOW}$INSTALL_DIR/uninstall.sh${NC}"
+printf '%b\n' "${GREEN}Uninstall:${NC}"
+printf '%b\n' "  • To uninstall, run:"
+printf '%b\n' "    ${YELLOW}$INSTALL_DIR/uninstall.sh${NC}"
 echo
-echo -e "${YELLOW}⚠ Important:${NC}"
-echo -e "  1. This is a work in progress"
-echo -e "  2. It might not work as expected"
-echo -e "  3. If there is an error, please report it"
-echo -e "  4. It can impact your system!"
+printf '%b\n' "${YELLOW}⚠ Important:${NC}"
+printf '%b\n' "  1. This is a work in progress"
+printf '%b\n' "  2. It might not work as expected"
+printf '%b\n' "  3. If there is an error, please report it"
+printf '%b\n' "  4. It can impact your system!"
 echo
