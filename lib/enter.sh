@@ -130,13 +130,13 @@ enter_chroot() {
 
   if [ "$chroot_user" != "none" ] && [ -n "$chroot_user" ]; then
     if [ -n "$chroot_env" ]; then
-      chroot "$chroot_path" env $chroot_env su - "$chroot_user"
+      chroot "$chroot_path" sh -c "export $chroot_env; su - '$chroot_user'"
     else
       chroot "$chroot_path" su - "$chroot_user"
     fi
   else
     if [ -n "$chroot_env" ]; then
-      chroot "$chroot_path" env $chroot_env su - root
+      chroot "$chroot_path" sh -c "export $chroot_env; su - root"
     else
       chroot "$chroot_path" su - root
     fi
