@@ -107,6 +107,10 @@ create_chroot() {
       chroot_env=$(trim "$parsed_env")
       shift 2
       ;;
+    --pkg)
+      chroot_packages="${chroot_packages:-},$2"
+      shift 2
+      ;;
     *)
       local args="${args:-}$1 "
       shift
@@ -151,6 +155,21 @@ create_chroot() {
     *)
       error "Unknown chroot type: $chroot_type"
       show_help_create
+      exit 1
+      ;;
+    esac
+  fi
+
+  if [ -n "${chroot_packages:-}" ]; then
+    local pkgs
+    pkgs=$(echo "$chroot_packages" | sed 's/^,//' | tr ',' ' ')
+    info "Installing packages: $pkgs"
+    case "$chroot_type" in
+    alpine)
+      chroot "$chroot_path" apk add --no-cache $pkgs
+      ;;
+    *)
+      error "Package installation not supported for $chroot_type"
       exit 1
       ;;
     esac
@@ -323,6 +342,7 @@ show_help_create() {
   printf '%b\n' "  ${GREEN}--from-local${NC}    <name>  Restore chroot from local cache"
   printf '%b\n' "  ${GREEN}--user${NC}           <name>  Create a non-root user in the chroot"
   printf '%b\n' "  ${GREEN}--env${NC}            <vars>  Set environment variables (KEY=VALUE,KEY2=VALUE2)"
+  printf '%b\n' "  ${GREEN}--pkg${NC}            <pkgs>  Install packages at creation time (comma-separated, e.g. curl,git)"
   printf '%b\n' "  ${GREEN}-h, --help${NC}              Show this help message"
   printf '%b\n' "${BOLD}${CYAN}Examples:${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test${NC}"
@@ -332,5 +352,6 @@ show_help_create() {
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test --bind-ro ~/.claude:/home/armrib${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test --bind-rw /src:/dst${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test --env DEBUG=1,LOG_LEVEL=info${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test --pkg curl,git${NC}"
   printf '%b\n' "${BOLD}${CYAN}For more information, visit:${NC} $REPOSITORY"
 }
