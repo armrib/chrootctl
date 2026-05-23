@@ -102,7 +102,6 @@ exec_in_chroot() {
   unset bind_spec bind_src bind_dest
 
   echo "Executing command in chroot environment $chroot_name..."
-  export SHELL="/bin/sh"
   if [ "$chroot_user" != "none" ] && [ -n "$chroot_user" ]; then
     chroot "$chroot_path" su - "$chroot_user" -c "$*"
   else

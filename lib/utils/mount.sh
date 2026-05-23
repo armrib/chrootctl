@@ -66,39 +66,12 @@ unmount_chroot() {
 
   echo "Unmounting remaining filesystems..."
 
-  # Unmount custom shared mounts first (in reverse order)
-  if [ -n "$chroot_mount_shared" ] && [ "$chroot_mount_shared" != "none" ]; then
-    echo "$chroot_mount_shared" | tr ',' '\n' | tac | while read -r mount_path; do
-      [ -z "$mount_path" ] && continue
-      local mount_point="${chroot_path}${mount_path}"
-      if mountpoint -q "$mount_point" 2>/dev/null; then
-        echo "Unmounting shared mount: $mount_point"
-        umount -fn "$mount_point" || umount -l "$mount_point" || true
-      fi
-    done
-  fi
-
-  # Unmount custom private mounts (in reverse order)
-  if [ -n "$chroot_mount_private" ] && [ "$chroot_mount_private" != "none" ]; then
-    echo "$chroot_mount_private" | tr ',' '\n' | tac | while read -r mount_path; do
-      [ -z "$mount_path" ] && continue
-      # Skip default mounts (handled below)
-      case "$mount_path" in
-      default) continue ;;
-      esac
-      local mount_point="${chroot_path}${mount_path}"
-      if mountpoint -q "$mount_point" 2>/dev/null; then
-        echo "Unmounting private mount: $mount_point"
-        umount -fn "$mount_point" || umount -l "$mount_point" || true
-      fi
-    done
-  fi
-
-  # Unmount default mounts in reverse order
-  for mount_point in "${chroot_path}/dev/pts" "${chroot_path}/sys" "${chroot_path}/dev" "${chroot_path}/proc"; do
+  # Get all mounts under chroot_path and unmount in reverse order (deepest first)
+  local all_mounts=$(mount | grep "^[^ ]* on ${chroot_path}" | awk '{print $3}' | sort -r)
+  for mount_point in $all_mounts; do
     if mountpoint -q "$mount_point" 2>/dev/null; then
       echo "Unmounting: $mount_point"
-      umount -fn "$mount_point" || umount -l "$mount_point" || true
+      umount -fn "$mount_point" 2>/dev/null || umount -l "$mount_point" 2>/dev/null || true
     fi
   done
 }

@@ -23,8 +23,11 @@ save_chroot() {
   local chroot_dir=$(echo "$chroot_params" | awk '{print $2}')
   local chroot_type=$(echo "$chroot_params" | awk '{print $3}')
   local chroot_shell=$(echo "$chroot_params" | awk '{print $4}')
-  local chroot_mount_ro=$(echo "$chroot_params" | awk '{print $5}')
-  local chroot_mount_rw=$(echo "$chroot_params" | awk '{print $6}')
+  local chroot_mount_private=$(echo "$chroot_params" | awk '{print $5}')
+  local chroot_mount_shared=$(echo "$chroot_params" | awk '{print $6}')
+  local chroot_bind_ro=$(echo "$chroot_params" | awk '{print $7}')
+  local chroot_bind_rw=$(echo "$chroot_params" | awk '{print $8}')
+  local chroot_user=$(echo "$chroot_params" | awk '{print $9}')
 
   local chroot_path="${chroot_dir}/${chroot_name}"
   local save_chroot_name="$chroot_name"
@@ -67,7 +70,55 @@ save_chroot() {
 
   # Compress the chroot
   (cd "$chroot_path" && tar -czf "$CHROOT_CACHE_DIR/${save_chroot_name}.tar.gz" .)
+
+  # Save metadata for restoration
+  echo "$save_chroot_name $chroot_dir $chroot_type $chroot_shell $chroot_mount_private $chroot_mount_shared $chroot_bind_ro $chroot_bind_rw $chroot_user" >"$CHROOT_CACHE_DIR/${save_chroot_name}.meta"
+
   echo "Chroot environment $save_chroot_name saved!"
+
+  # Re-mount the chroot so it remains usable after saving
+  mount_proc "$chroot_path"
+  mount_bind_private /dev "$chroot_path/dev"
+  mount_bind_private /sys "$chroot_path/sys"
+  if [ "$chroot_type" = "arch" ]; then
+    mount_bind_private /dev/pts "$chroot_path/dev/pts"
+  fi
+
+  # Re-mount custom mounts from database
+  if [ "$chroot_mount_private" != "none" ] && [ -n "$chroot_mount_private" ]; then
+    for mount_private in $(echo "$chroot_mount_private" | tr ',' ' '); do
+      [ -n "$mount_private" ] && [ "$mount_private" != "default" ] && mount_bind_private "$mount_private" "${chroot_path}${mount_private}"
+    done
+  fi
+
+  if [ "$chroot_mount_shared" != "none" ] && [ -n "$chroot_mount_shared" ]; then
+    for mount_shared in $(echo "$chroot_mount_shared" | tr ',' ' '); do
+      [ -n "$mount_shared" ] && mount_bind_shared "$mount_shared" "${chroot_path}${mount_shared}"
+    done
+  fi
+
+  if [ "$chroot_bind_ro" != "none" ] && [ -n "$chroot_bind_ro" ]; then
+    for bind_spec in $(echo "$chroot_bind_ro" | tr ',' ' '); do
+      [ -n "$bind_spec" ] && {
+        src=$(echo "$bind_spec" | cut -d: -f1)
+        dest=$(echo "$bind_spec" | cut -d: -f2-)
+        src=$(eval echo "$src")
+        [ -e "$src" ] && mount_bind_ro "$src" "${chroot_path}${dest}"
+      }
+    done
+  fi
+
+  if [ "$chroot_bind_rw" != "none" ] && [ -n "$chroot_bind_rw" ]; then
+    for bind_spec in $(echo "$chroot_bind_rw" | tr ',' ' '); do
+      [ -n "$bind_spec" ] && {
+        src=$(echo "$bind_spec" | cut -d: -f1)
+        dest=$(echo "$bind_spec" | cut -d: -f2-)
+        src=$(eval echo "$src")
+        [ -e "$src" ] && mount_bind_rw "$src" "${chroot_path}${dest}"
+      }
+    done
+  fi
+
   echo "You can now delete the chroot with 'chrootctl delete $save_chroot_name'."
   echo "To restore the chroot, run 'chrootctl create $save_chroot_name --from-local $save_chroot_name'."
 }

@@ -4,3 +4,6 @@ tags
 # Local test files
 .cache/
 .db
+
+# Logs
+*.log

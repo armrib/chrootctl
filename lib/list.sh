@@ -49,10 +49,16 @@ list_chroots() {
   unset line
 
   # Print header
-  printf '%b\n' "${BOLD}${CYAN}%-*s${NC}  ${BOLD}${CYAN}%-*s${NC}  ${BOLD}${CYAN}%-*s${NC}  ${BOLD}${CYAN}%-*s${NC}  ${BOLD}${CYAN}%-*s${NC}  ${BOLD}${CYAN}%-*s${NC}" "$col1_width" "Name" "$col2_width" "Path" "$col3_width" "Type" "$col4_width" "Shell" "$col5_width" "Mount Private" "$col6_width" "Mount Shared"
+  printf "%b%-*s%b | %b%-*s%b | %b%-*s%b | %b%-*s%b | %b%-*s%b | %b%-*s%b\n" \
+    "$BOLD$CYAN" "$col1_width" "Name" "$NC" \
+    "$BOLD$CYAN" "$col2_width" "Path" "$NC" \
+    "$BOLD$CYAN" "$col3_width" "Type" "$NC" \
+    "$BOLD$CYAN" "$col4_width" "Shell" "$NC" \
+    "$BOLD$CYAN" "$col5_width" "Mount Private" "$NC" \
+    "$BOLD$CYAN" "$col6_width" "Mount Shared" "$NC"
 
   # Print separator line
-  printf "%${col1_width}s  %${col2_width}s  %${col3_width}s  %${col4_width}s  %${col5_width}s  %${col6_width}s\n" | tr ' ' '-'
+  printf "%${col1_width}s-+-%-${col2_width}s-+-%-${col3_width}s-+-%-${col4_width}s-+-%-${col5_width}s-+-%-${col6_width}s\n" | tr ' ' '-'
 
   # Print rows
   while IFS= read -r line; do
@@ -64,7 +70,7 @@ list_chroots() {
     local shell=$(echo "$line" | awk '{print $4}')
     local mount_private=$(echo "$line" | awk '{print $5}')
     local mount_shared=$(echo "$line" | awk '{print $6}')
-    printf "%-*s  %-*s  %-*s  %-*s  %-*s  %-*s\n" "$col1_width" "$name" "$col2_width" "$dir" "$col3_width" "$type" "$col4_width" "$shell" "$col5_width" "$mount_private" "$col6_width" "$mount_shared"
+    printf "%-*s | %-*s | %-*s | %-*s | %-*s | %-*s\n" "$col1_width" "$name" "$col2_width" "$dir" "$col3_width" "$type" "$col4_width" "$shell" "$col5_width" "$mount_private" "$col6_width" "$mount_shared"
   done <"$DB"
   unset line
 }

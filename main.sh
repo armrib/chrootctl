@@ -35,15 +35,17 @@ show_help() {
   printf '%b\n' "${BOLD}${CYAN}Actions:${NC}"
   printf '%b\n' "  ${GREEN}create${NC} Create a chroot environment"
   printf '%b\n' "  ${GREEN}enter${NC}  Enter a chroot environment"
+  printf '%b\n' "  ${GREEN}exec${NC}   Execute a command in a chroot"
   printf '%b\n' "  ${GREEN}save${NC}   Save a chroot environment"
   printf '%b\n' "  ${GREEN}delete${NC} Delete a chroot environment"
   printf '%b\n' "  ${GREEN}list${NC}   List all chroot environments"
   printf '%b\n' "  ${GREEN}cache${NC}  List all cached distributions"
-  printf '%b\n' "  ${GREEN}saved${NC}  List all saved chroot environments"
+  printf '%b\n' "  ${GREEN}saved${NC}  Manage saved chroot environments"
   printf '%b\n' "  ${GREEN}help${NC}   Show help"
   printf '%b\n' "${BOLD}${CYAN}Examples:${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME enter test${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME exec test /bin/echo hello${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME delete test${NC}"
   printf '%b\n' "${BOLD}${CYAN}For more information, visit:${NC} $REPOSITORY"
 }
@@ -67,6 +69,10 @@ enter)
   source "$LIB/enter.sh"
   enter_chroot "$@"
   ;;
+exec)
+  source "$LIB/exec.sh"
+  exec_in_chroot "$@"
+  ;;
 save)
   source "$LIB/save.sh"
   save_chroot "$@"
@@ -85,7 +91,7 @@ cache)
   ;;
 saved)
   source "$LIB/saved.sh"
-  list_saved
+  saved_cmd "$@"
   ;;
 version)
   echo "Chrootctl v${VERSION}"
