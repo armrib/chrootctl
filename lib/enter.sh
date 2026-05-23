@@ -135,7 +135,7 @@ enter_chroot() {
   if [ "$chroot_user" != "none" ] && [ -n "$chroot_user" ]; then
     chroot "$chroot_path" su - "$chroot_user"
   else
-    chroot "$chroot_path" "$chroot_shell"
+    chroot "$chroot_path" su -
   fi
 }
 
