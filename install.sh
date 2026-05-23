@@ -75,16 +75,16 @@ cat <<EOF >"$INSTALL_DIR/uninstall.sh"
 echo "Uninstalling $PROGRAM_NAME..."
 
 # Remove symbolic link
-rm -f $BIN_DIR/$PROGRAM_NAME
+rm -f "$BIN_DIR/$PROGRAM_NAME"
 
 # Remove installation directory
-rm -rf $INSTALL_DIR
+rm -rf "$INSTALL_DIR"
 
 # Remove cache directories
-rm -rf $CACHE_DIR
+rm -rf "$CACHE_DIR"
 
 # Remove database
-rm -rf $DATA_DIR
+rm -rf "$DATA_DIR"
 
 echo "$PROGRAM_NAME has been uninstalled"
 EOF

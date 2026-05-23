@@ -24,7 +24,7 @@ list_saved() {
   unset file
 
   # Print header
-  printf "%-*s  %-*s  %-*s  %-*s\n" "$col1_width" "Name" "$col2_width" "Size"
+  printf "%-*s  %-*s\n" "$col1_width" "Name" "$col2_width" "Size"
 
   # Print separator line
   printf "%${col1_width}s  %${col2_width}s\n" | tr ' ' '-'
@@ -35,7 +35,7 @@ list_saved() {
 
     local name=$(basename "$file")
     local size=$(du -sh "$file" | awk '{print $1}')
-    printf "%-*s  %-*s  %-*s  %-*s\n" "$col1_width" "$name" "$col2_width" "$size"
+    printf "%-*s  %-*s\n" "$col1_width" "$name" "$col2_width" "$size"
   done
   unset file
 }

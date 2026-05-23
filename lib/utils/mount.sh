@@ -38,7 +38,7 @@ unmount_chroot() {
 
   echo "Unmounting remaining filesystems..."
   # Unmounts all filesystem under the specified directory tree.
-  for path in $(cat /proc/mounts | cut -d' ' -f2 | grep "^$chroot_path." | sort -r); do
+  for path in $(cat /proc/mounts | cut -d' ' -f2 | grep "^$(printf '%s\n' "$chroot_path" | sed 's/[[\.*^$/]/\\&/g')/" | sort -r); do
     echo "Unmounting $path"
     umount -fn "$path" || echo "Could not unmount $path"
   done

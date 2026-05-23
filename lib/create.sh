@@ -150,7 +150,7 @@ create_chroot() {
       source "$LIB/utils/abs-path.sh"
       echo "Warn: Transforming relative path ($mount_private) to absolute path..."
       local abs_mount_private=$(abs_path $mount_private)
-      chroot_mount_private=$(echo $chroot_mount_private | sed "s#$mount_private#$abs_mount_private#g")
+      chroot_mount_private=$(echo "$chroot_mount_private" | sed "s|$(printf '%s\n' "$mount_private" | sed 's/[&/\]/\\&/g')|$(printf '%s\n' "$abs_mount_private" | sed 's/[&/\]/\\&/g')|g")
       mount_private=$abs_mount_private
       echo "Mounting private mount point $mount_private..."
       mount_bind_private "$mount_private" "${chroot_path}${mount_private}"
@@ -177,7 +177,7 @@ create_chroot() {
       source "$LIB/utils/abs-path.sh"
       echo "Warn: Transforming relative path ($mount_shared) to absolute path..."
       local abs_mount_shared=$(abs_path $mount_shared)
-      chroot_mount_shared=$(echo $chroot_mount_shared | sed "s#$mount_shared#$abs_mount_shared#g")
+      chroot_mount_shared=$(echo "$chroot_mount_shared" | sed "s|$(printf '%s\n' "$mount_shared" | sed 's/[&/\]/\\&/g')|$(printf '%s\n' "$abs_mount_shared" | sed 's/[&/\]/\\&/g')|g")
       mount_shared=$abs_mount_shared
       echo "Mounting private mount point $mount_shared..."
       mount_bind_shared "$mount_shared" "${chroot_path}${mount_shared}"

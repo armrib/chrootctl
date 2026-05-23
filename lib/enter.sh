@@ -46,13 +46,15 @@ enter_chroot() {
     esac
   done
 
-  local private_mounts=$(echo "$chroot_mount_private" | tr ',' ' ' | sed "s#default#/proc /dev $([ $chroot_type = "arch" ] && echo /dev/pts) /sys#g")
+  local default_mounts="/proc /dev /sys"
+  [ "$chroot_type" = "arch" ] && default_mounts="/proc /dev /dev/pts /sys"
+  local private_mounts=$(echo "$chroot_mount_private" | tr ',' ' ' | sed "s#default#$default_mounts#g")
   local shared_mounts=$(echo "$chroot_mount_shared" | tr ',' ' ')
   local current_mounts=$(cat /proc/mounts | cut -d' ' -f2)
 
   echo "Check missing private mount points..."
   for private_mount in $private_mounts; do
-    if ! echo "$current_mounts" | grep -q "^${chroot_path}${private_mount}"; then
+    if ! echo "$current_mounts" | grep -qF "${chroot_path}${private_mount}"; then
       echo "Warn: Mount point $private_mount is not mounted, mounting..."
       source "$LIB/utils/mount.sh"
       case "$private_mount" in
@@ -66,7 +68,7 @@ enter_chroot() {
 
   echo "Check missing shared mount points..."
   for shared_mount in $(echo "$shared_mounts" | sed 's#none##g'); do
-    if ! echo "$current_mounts" | grep -q "^${chroot_path}${shared_mount}"; then
+    if ! echo "$current_mounts" | grep -qF "${chroot_path}${shared_mount}"; then
       echo "Warn: Mount point $shared_mount is not mounted, mounting..."
       source "$LIB/utils/mount.sh"
       case "$shared_mount" in

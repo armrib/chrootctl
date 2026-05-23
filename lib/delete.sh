@@ -61,7 +61,7 @@ delete_chroot() {
     trap 'rm -f "$tmpfile"' EXIT INT TERM HUP
 
     # Delete matching lines and write to temporary file
-    sed "/^${chroot_name}/d" "$DB" >"$tmpfile" && mv "$tmpfile" "$DB"
+    sed "/^$(printf '%s\n' "$chroot_name" | sed 's/[[\.*^$/]/\\&/g')/d" "$DB" >"$tmpfile" && mv "$tmpfile" "$DB"
 
     # Cleanup
     rm -f "$tmpfile"
