@@ -20,6 +20,7 @@ The tool is designed with no external dependencies and requires root access. It 
 2. **Command Handlers** (`lib/*.sh`): Each command has a dedicated module
    - `create.sh` — Create new chroot environments
    - `enter.sh` — Enter/interact with a chroot
+   - `exec.sh` — Execute a command in a chroot without entering
    - `save.sh` — Save a chroot to cache
    - `delete.sh` — Delete a chroot
    - `list.sh`, `cache.sh`, `saved.sh` — Display information
@@ -32,6 +33,7 @@ The tool is designed with no external dependencies and requires root access. It 
    - `db.sh` — Database operations (persistence of chroot metadata)
    - `mount.sh` — Mount/unmount operations
    - `abs-path.sh`, `trim.sh` — String/path utilities
+   - `is-chroot.sh` — Detection utilities for checking if running in a chroot
 
 5. **Storage**:
    - **Database** (`.db` or `/var/lib/chrootctl/db`): Metadata for created chrroots
@@ -73,6 +75,7 @@ The script will automatically escalate to root using `doas` if needed. Examples:
 ```sh
 ./main.sh create test              # Create a chroot
 ./main.sh enter test               # Enter a chroot
+./main.sh exec test /bin/echo hi   # Run a command in a chroot
 ./main.sh save test                # Save a chroot
 ./main.sh delete test              # Delete a chroot
 ./main.sh list                     # List all chrroots
@@ -83,6 +86,26 @@ The script will automatically escalate to root using `doas` if needed. Examples:
 ### Version
 ```sh
 ./main.sh version
+```
+
+### Detecting If You're in a Chroot
+When you enter a chroot with `chrootctl enter`, the environment variable `CHROOTCTL_CHROOT` is automatically set to the chroot name. You can check if you're in a chroot by sourcing the detection utility:
+
+```sh
+source lib/utils/is-chroot.sh
+
+# Check with a return code (for conditionals)
+if is_chroot; then
+  echo "Inside a chroot!"
+fi
+
+# Print status
+is_chroot status  # Prints "Inside chroot: <name>" or "Not in a chroot"
+```
+
+Or simply check the environment variable:
+```sh
+echo "$CHROOTCTL_CHROOT"  # Prints chroot name, or empty if not in one
 ```
 
 ## Common Development Patterns

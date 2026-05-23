@@ -3,14 +3,20 @@
 source "$LIB/utils/db.sh"
 source "$LIB/utils/colors.sh"
 
-# Function to enter the chroot environment
-enter_chroot() {
+# Function to execute a command in a chroot environment without entering
+exec_in_chroot() {
   if [ -n "${1:-}" ]; then
     readonly chroot_name=$1
     shift
   else
     error "Missing chroot name!"
-    show_help_enter
+    show_help_exec
+    exit 1
+  fi
+
+  if [ -z "${1:-}" ]; then
+    error "Missing command to execute!"
+    show_help_exec
     exit 1
   fi
 
@@ -23,7 +29,6 @@ enter_chroot() {
 
   local chroot_dir=$(echo "$chroot_params" | awk '{print $2}')
   local chroot_type=$(echo "$chroot_params" | awk '{print $3}')
-  local chroot_shell=$(echo "$chroot_params" | awk '{print $4}')
   local chroot_mount_private=$(echo "$chroot_params" | awk '{print $5}')
   local chroot_mount_shared=$(echo "$chroot_params" | awk '{print $6}')
   local chroot_bind_ro=$(echo "$chroot_params" | awk '{print $7}')
@@ -32,24 +37,6 @@ enter_chroot() {
   chroot_user="${chroot_user:-none}"
 
   local chroot_path="${chroot_dir}/${chroot_name}"
-  local chroot_shell=${chroot_shell:-/bin/sh}
-
-  while [ "$#" -gt 0 ]; do
-    case "$1" in
-    --shell)
-      chroot_shell="$2"
-      shift 2
-      ;;
-    -h | --help)
-      show_help_enter
-      exit 0
-      ;;
-    *)
-      echo "Unknown option: $1"
-      exit 1
-      ;;
-    esac
-  done
 
   local default_mounts="/proc /dev /sys"
   [ "$chroot_type" = "arch" ] && default_mounts="/proc /dev /dev/pts /sys"
@@ -114,24 +101,22 @@ enter_chroot() {
   done
   unset bind_spec bind_src bind_dest
 
-  echo "Entering chroot environment $chroot_name in $chroot_dir..."
-  export CHROOTCTL_CHROOT="$chroot_name"
-  export SHELL="$chroot_shell"
+  echo "Executing command in chroot environment $chroot_name..."
+  export SHELL="/bin/sh"
   if [ "$chroot_user" != "none" ] && [ -n "$chroot_user" ]; then
-    chroot "$chroot_path" su - "$chroot_user"
+    chroot "$chroot_path" su - "$chroot_user" -c "$*"
   else
-    chroot "$chroot_path" "$chroot_shell"
+    chroot "$chroot_path" "$@"
   fi
 }
 
-show_help_enter() {
-  printf '%b\n' "${BOLD}${BLUE}Chrootctl enter v${VERSION}${NC}"
-  printf '%b\n' "${BOLD}${CYAN}Usage:${NC} $PROGRAM_NAME enter ${chroot_name:-} [options]"
-  printf '%b\n' "${BOLD}${CYAN}Options:${NC}"
-  printf '%b\n' "  ${GREEN}--shell${NC} <shell>       Default shell to use (default: /bin/sh)"
-  printf '%b\n' "  ${GREEN}-h, --help${NC}            Show this help message"
+show_help_exec() {
+  printf '%b\n' "${BOLD}${BLUE}Chrootctl exec v${VERSION}${NC}"
+  printf '%b\n' "${BOLD}${CYAN}Usage:${NC} $PROGRAM_NAME exec ${chroot_name:-} <command> [args...]"
+  printf '%b\n' "${BOLD}${CYAN}Description:${NC} Execute a command in a chroot without entering it interactively"
   printf '%b\n' "${BOLD}${CYAN}Examples:${NC}"
-  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME enter test${NC}"
-  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME enter test --shell /bin/bash${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME exec test /bin/echo hello${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME exec test /bin/ls -la /${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME exec test /bin/sh -c 'echo \$PATH'${NC}"
   printf '%b\n' "${BOLD}${CYAN}For more information, visit:${NC} $REPOSITORY"
 }
