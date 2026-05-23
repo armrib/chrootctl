@@ -53,13 +53,7 @@ The tool is designed with no external dependencies and requires root access. It 
 ```sh
 ./install.sh
 ```
-Installs the tool to `/opt/chrootctl` and creates a symlink to `/usr/local/bin/chrootctl`. The script will automatically escalate to root using `doas` if needed.
-
-**Note**: For seamless usage without password prompts, configure doas with `nopass` for this tool. Add to `/etc/doas.conf`:
-```
-permit nopass keepenv :wheel cmd /opt/chrootctl/chrootctl
-permit nopass keepenv :wheel cmd ./main.sh
-```
+Installs the tool to `/opt/chrootctl` and creates a symlink to `/usr/local/bin/chrootctl`. The script will automatically escalate to root using `doas` if needed, prompting for your password if required.
 
 ### Testing
 ```sh
