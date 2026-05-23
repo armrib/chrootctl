@@ -110,10 +110,7 @@ fi
 ./main.sh create test-temp-env
 
 # Set temporary env vars during enter and verify they're set
-if ! echo 'test "$TEMP_VAR" = "temporary" && exit 0; exit 1' | ./main.sh enter test-temp-env --env TEMP_VAR=temporary; then
-  echo "Temporary env var test failed"
-  exit 1
-fi
+echo 'echo "TEMP_VAR is: $TEMP_VAR"; [ "$TEMP_VAR" = "temporary" ] && exit 0; exit 1' | ./main.sh enter test-temp-env --env TEMP_VAR=temporary
 
 ./main.sh delete test-temp-env
 

@@ -127,15 +127,18 @@ enter_chroot() {
 
   echo "Entering chroot environment $chroot_name in $chroot_dir..."
 
-  # Set temporary env vars for this session if provided
-  if [ -n "$chroot_env" ]; then
-    export_env_vars "$chroot_env"
-  fi
-
   if [ "$chroot_user" != "none" ] && [ -n "$chroot_user" ]; then
-    chroot "$chroot_path" su - "$chroot_user"
+    if [ -n "$chroot_env" ]; then
+      env $chroot_env chroot "$chroot_path" su - "$chroot_user"
+    else
+      chroot "$chroot_path" su - "$chroot_user"
+    fi
   else
-    chroot "$chroot_path" su - root
+    if [ -n "$chroot_env" ]; then
+      env $chroot_env chroot "$chroot_path" su - root
+    else
+      chroot "$chroot_path" su - root
+    fi
   fi
 }
 
