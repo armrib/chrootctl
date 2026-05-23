@@ -47,7 +47,7 @@ create_alpine() {
   fi
 
   # Extract the file
-  tar -xzf "$DIST_CACHE_DIR/alpine.tar.gz" -C "$chroot_path"
+  tar --no-same-owner --no-same-permissions -xzf "$DIST_CACHE_DIR/alpine.tar.gz" -C "$chroot_path"
 }
 
 show_help_create_alpine() {
