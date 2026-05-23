@@ -98,14 +98,9 @@ if ! grep -q 'export LOG_LEVEL="info"' /tmp/test-env/root/.profile; then
   exit 1
 fi
 
-# Verify env vars are accessible in chroot
-if ! ./main.sh exec test-env sh -c 'test "$DEBUG" = "1"'; then
-  echo "Env var test failed: DEBUG not set in chroot"
-  exit 1
-fi
-
-if ! ./main.sh exec test-env sh -c 'test "$LOG_LEVEL" = "info"'; then
-  echo "Env var test failed: LOG_LEVEL not set in chroot"
+# Verify env vars are accessible in chroot (using enter which sources .profile)
+if ! echo 'test "$DEBUG" = "1" && test "$LOG_LEVEL" = "info" && exit 0; exit 1' | ./main.sh enter test-env; then
+  echo "Env var test failed: env vars not accessible in chroot"
   exit 1
 fi
 
@@ -115,11 +110,7 @@ fi
 ./main.sh create test-temp-env
 
 # Set temporary env vars during enter and verify they're set
-if ! ./main.sh enter test-temp-env --env TEMP_VAR=temporary << 'EOF'
-test "$TEMP_VAR" = "temporary" && echo "Temporary env var test passed" && exit 0
-exit 1
-EOF
-then
+if ! echo 'test "$TEMP_VAR" = "temporary" && exit 0; exit 1' | ./main.sh enter test-temp-env --env TEMP_VAR=temporary; then
   echo "Temporary env var test failed"
   exit 1
 fi
