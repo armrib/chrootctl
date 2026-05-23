@@ -18,7 +18,7 @@ readonly CHROOT_CACHE_DIR="$CACHE_DIR/chroot"
 
 # Escalate to root with doas if not already running as root
 if [ "$(id -u)" -ne 0 ]; then
-  exec doas -n "$0" "$@"
+  exec doas "$0" "$@"
 fi
 
 # Colors for output
@@ -35,11 +35,10 @@ echo
 
 # Create installation directories
 echo -e "${YELLOW}Creating installation directories...${NC}"
-for dir in "$INSTALL_DIR" "$BIN_DIR" "$LIB_DIR" "$DATA_DIR" "$DIST_CACHE_DIR" "$CHROOT_CACHE_DIR"; do
-  mkdir -p "$dir"
-  chmod 700 "$dir"
-done
-unset dir
+mkdir -p "$INSTALL_DIR" "$BIN_DIR" "$LIB_DIR"
+chmod 755 "$INSTALL_DIR" "$BIN_DIR" "$LIB_DIR"
+mkdir -p "$DATA_DIR" "$DIST_CACHE_DIR" "$CHROOT_CACHE_DIR"
+chmod 700 "$DATA_DIR" "$DIST_CACHE_DIR" "$CHROOT_CACHE_DIR"
 
 # Copy script files
 echo -e "${YELLOW}Installing script files...${NC}"
