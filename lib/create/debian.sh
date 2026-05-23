@@ -36,7 +36,7 @@ create_debian() {
 
   if [ -f "$DIST_CACHE_DIR/debian-${suite}.tar.gz" ]; then
     echo "Using existing Debian chroot tarball"
-    tar -xzf "$DIST_CACHE_DIR/debian-${suite}.tar.gz" -C "$chroot_path"
+    tar --no-same-owner --no-same-permissions -xzf "$DIST_CACHE_DIR/debian-${suite}.tar.gz" -C "$chroot_path"
   else
     echo "Creating Debian chroot from debootstrap"
     if ! apk add debootstrap perl; then

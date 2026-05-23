@@ -36,10 +36,10 @@ create_arch() {
     wget "$url" -O "$DIST_CACHE_DIR/arch-bootstrap.sh"
     apk add bash zstd curl
     bash "$DIST_CACHE_DIR/arch-bootstrap.sh" "$chroot_path"
-    tar -xzf "$DIST_CACHE_DIR/arch.tar.gz" -C "$chroot_path"
+    tar --no-same-owner --no-same-permissions -xzf "$DIST_CACHE_DIR/arch.tar.gz" -C "$chroot_path"
   else
     # Extract the file
-    tar -xzf "$DIST_CACHE_DIR/arch.tar.gz" -C "$chroot_path"
+    tar --no-same-owner --no-same-permissions -xzf "$DIST_CACHE_DIR/arch.tar.gz" -C "$chroot_path"
   fi
 }
 
