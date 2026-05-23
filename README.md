@@ -29,17 +29,30 @@
 
 ## Features
 
-- Create: create a chroot environment.
+- Create: create a chroot environment with optional package installation and environment variables.
 - Enter: enter a chroot environment.
 - Save: save a chroot environment.
 - Delete: delete a chroot environment.
 - List: list all chroot environments.
 - Cache: list all cached distributions.
 - Saved: list all saved chroot environments.
+- Package installation: install Alpine packages at creation time via `--pkg` flag.
 
 ---
 
 ## Usage
+
+### Create a chroot with packages
+
+You can install Alpine packages during chroot creation using the `--pkg` flag. Packages are installed before user creation, so you can depend on tools being available during setup:
+
+```sh
+# Create a chroot with packages
+chrootctl create mydev --pkg curl,git,build-base
+
+# Combine with other options
+chrootctl create mydev --pkg curl,git --user devuser --env NODE_ENV=development
+```
 
 ### Create a chroot with environment variables
 

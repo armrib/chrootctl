@@ -114,4 +114,20 @@ echo 'echo "TEMP_VAR is: $TEMP_VAR"; [ "$TEMP_VAR" = "temporary" ] && exit 0; ex
 
 ./main.sh delete test-temp-env
 
+# Test create with packages
+./main.sh create test-pkg --pkg curl,git
+
+# Verify packages were installed (check if executables exist)
+if ! ./main.sh exec test-pkg test -f /usr/bin/curl; then
+  echo "Package test failed: curl not found in /usr/bin"
+  exit 1
+fi
+
+if ! ./main.sh exec test-pkg test -f /usr/bin/git; then
+  echo "Package test failed: git not found in /usr/bin"
+  exit 1
+fi
+
+./main.sh delete test-pkg
+
 echo "Test passed!"
