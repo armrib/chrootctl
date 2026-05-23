@@ -3,6 +3,7 @@
 source "$LIB/utils/db.sh"
 source "$LIB/utils/colors.sh"
 source "$LIB/utils/env.sh"
+source "$LIB/utils/trim.sh"
 
 # Function to enter the chroot environment
 enter_chroot() {
@@ -48,7 +49,7 @@ enter_chroot() {
         echo "Format: KEY=VALUE,KEY2=VALUE2"
         exit 1
       fi
-      chroot_env="$parsed_env"
+      chroot_env=$(trim "$parsed_env")
       shift 2
       ;;
     -h | --help)

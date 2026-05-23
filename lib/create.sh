@@ -3,6 +3,7 @@
 source "$LIB/utils/db.sh"
 source "$LIB/utils/colors.sh"
 source "$LIB/utils/env.sh"
+source "$LIB/utils/trim.sh"
 
 # Function to create the chroot environment
 create_chroot() {
@@ -103,7 +104,7 @@ create_chroot() {
         echo "Format: KEY=VALUE,KEY2=VALUE2"
         exit 1
       fi
-      chroot_env="$parsed_env"
+      chroot_env=$(trim "$parsed_env")
       shift 2
       ;;
     *)
