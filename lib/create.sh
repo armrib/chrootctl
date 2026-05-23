@@ -163,6 +163,12 @@ create_chroot() {
   if [ -n "${chroot_packages:-}" ]; then
     local pkgs
     pkgs=$(echo "$chroot_packages" | sed 's/^,//' | tr ',' ' ')
+
+    # Set up DNS in the chroot for package installation
+    if [ ! -f "$chroot_path/etc/resolv.conf" ] || [ ! -s "$chroot_path/etc/resolv.conf" ]; then
+      cp /etc/resolv.conf "$chroot_path/etc/resolv.conf" 2>/dev/null || true
+    fi
+
     info "Installing packages: $pkgs"
     case "$chroot_type" in
     alpine)
