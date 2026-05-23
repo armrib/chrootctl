@@ -166,7 +166,10 @@ create_chroot() {
     info "Installing packages: $pkgs"
     case "$chroot_type" in
     alpine)
-      chroot "$chroot_path" apk add --no-cache $pkgs
+      chroot "$chroot_path" apk add --no-cache $pkgs || {
+        error "Failed to install packages: $pkgs"
+        exit 1
+      }
       ;;
     *)
       error "Package installation not supported for $chroot_type"
