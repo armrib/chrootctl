@@ -6,14 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **chrootctl** is a command-line tool written in POSIX shell for managing chroot environments on Alpine Linux. It provides a simple interface to create, enter, save, and delete isolated chroot environments with support for multiple Linux distributions (Alpine, Arch, Debian).
 
-The tool is designed with no external dependencies and must be run as root.
+The tool is designed with no external dependencies and requires root access. It automatically escalates to root using `doas` when needed.
 
 ## Architecture
 
 ### High-Level Flow
 
 1. **Entry Point** (`main.sh`): Dispatches commands to appropriate handler modules
-   - Validates root access
+   - Escalates to root using `doas` if needed
    - Reads environment-specific paths (development vs. production)
    - Routes commands to their handlers
 
@@ -51,15 +51,21 @@ The tool is designed with no external dependencies and must be run as root.
 
 ### Installation for Development
 ```sh
-sudo ./install.sh
+./install.sh
 ```
-Installs the tool to `/opt/chrootctl` and creates a symlink to `/usr/local/bin/chrootctl`.
+Installs the tool to `/opt/chrootctl` and creates a symlink to `/usr/local/bin/chrootctl`. The script will automatically escalate to root using `doas` if needed.
+
+**Note**: For seamless usage without password prompts, configure doas with `nopass` for this tool. Add to `/etc/doas.conf`:
+```
+permit nopass keepenv :wheel cmd /opt/chrootctl/chrootctl
+permit nopass keepenv :wheel cmd ./main.sh
+```
 
 ### Testing
 ```sh
-sudo ./test.sh
+./test.sh
 ```
-Runs integration tests that exercise all major features: create, enter, save, delete, list, cache, saved. Tests include:
+Runs integration tests that exercise all major features: create, enter, save, delete, list, cache, saved. The script will automatically escalate to root using `doas` if needed. Tests include:
 - Basic operations (create, delete, list)
 - Mounting/unmounting
 - Saving and restoring chrroots
@@ -67,22 +73,22 @@ Runs integration tests that exercise all major features: create, enter, save, de
 
 ### Running Locally (Development)
 ```sh
-sudo ./main.sh <command> [options]
+./main.sh <command> [options]
 ```
-Examples:
+The script will automatically escalate to root using `doas` if needed. Examples:
 ```sh
-sudo ./main.sh create test              # Create a chroot
-sudo ./main.sh enter test               # Enter a chroot
-sudo ./main.sh save test                # Save a chroot
-sudo ./main.sh delete test              # Delete a chroot
-sudo ./main.sh list                     # List all chrroots
-sudo ./main.sh cache                    # Show cached distributions
-sudo ./main.sh saved                    # Show saved chrroots
+./main.sh create test              # Create a chroot
+./main.sh enter test               # Enter a chroot
+./main.sh save test                # Save a chroot
+./main.sh delete test              # Delete a chroot
+./main.sh list                     # List all chrroots
+./main.sh cache                    # Show cached distributions
+./main.sh saved                    # Show saved chrroots
 ```
 
 ### Version
 ```sh
-sudo ./main.sh version
+./main.sh version
 ```
 
 ## Common Development Patterns
@@ -116,7 +122,7 @@ sudo ./main.sh version
 
 ## Important Constraints
 
-1. **Must run as root** — No fallback to sudo or other escalation; the script explicitly checks and exits if not root
+1. **Requires root access** — The script automatically escalates to root using `doas` if not already running as root
 2. **POSIX-only** — No bash extensions; must run on minimal Alpine shell
 3. **No external dependencies** — Cannot rely on apk, apt, or other package managers being available
 4. **Idempotent operations** — Create should handle re-runs gracefully; delete should handle missing chrroots

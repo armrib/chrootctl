@@ -2,10 +2,9 @@
 
 set -euo pipefail # Exit on error, undefined variables, and pipe failures
 
-# Function to check if the script is run as root
+# Escalate to root with doas if not already running as root
 if [ "$(id -u)" -ne 0 ]; then
-  echo "Error: This script must be run as root."
-  exit 1
+  exec doas -n "$0" "$@"
 fi
 
 # Global variables

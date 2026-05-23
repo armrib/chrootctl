@@ -16,10 +16,9 @@ readonly CACHE_DIR="/var/cache/$PROGRAM_NAME"
 readonly DIST_CACHE_DIR="$CACHE_DIR/dist"
 readonly CHROOT_CACHE_DIR="$CACHE_DIR/chroot"
 
-# Function to check if the script is run as root
+# Escalate to root with doas if not already running as root
 if [ "$(id -u)" -ne 0 ]; then
-  echo "Error: This script must be run as root."
-  exit 1
+  exec doas -n "$0" "$@"
 fi
 
 # Colors for output
