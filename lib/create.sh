@@ -2,6 +2,7 @@
 
 source "$LIB/utils/db.sh"
 source "$LIB/utils/colors.sh"
+source "$LIB/utils/env.sh"
 
 # Function to create the chroot environment
 create_chroot() {
@@ -48,6 +49,7 @@ create_chroot() {
   local chroot_type="alpine"
   local chroot_shell="/bin/sh"
   local chroot_user="none"
+  local chroot_env=""
 
   case "${1:-}" in
   -h | --help)
@@ -95,6 +97,15 @@ create_chroot() {
       chroot_user="$2"
       shift 2
       ;;
+    --env)
+      if ! parse_env_vars "$2"; then
+        error "Invalid environment variables: $2"
+        echo "Format: KEY=VALUE,KEY2=VALUE2"
+        exit 1
+      fi
+      chroot_env="$parsed_env"
+      shift 2
+      ;;
     *)
       local args="${args:-}$1 "
       shift
@@ -110,19 +121,31 @@ create_chroot() {
     info "Restoring chroot from local cache $chroot_from_local..."
     # Extract the file
     tar -xzf "$CHROOT_CACHE_DIR/${chroot_from_local}.tar.gz" -C "$chroot_path"
+
+    # Restore mount configuration and user from metadata if available
+    if [ -f "$CHROOT_CACHE_DIR/${chroot_from_local}.meta" ]; then
+      local meta=$(cat "$CHROOT_CACHE_DIR/${chroot_from_local}.meta")
+      chroot_type=$(echo "$meta" | awk '{print $3}')
+      chroot_shell=$(echo "$meta" | awk '{print $4}')
+      chroot_mount_private=$(echo "$meta" | awk '{print $5}')
+      chroot_mount_shared=$(echo "$meta" | awk '{print $6}')
+      chroot_bind_ro=$(echo "$meta" | awk '{print $7}')
+      chroot_bind_rw=$(echo "$meta" | awk '{print $8}')
+      chroot_user=$(echo "$meta" | awk '{print $9}')
+    fi
   else
     case "$chroot_type" in
     alpine)
       source "$LIB/create/alpine.sh"
-      create_alpine "$chroot_path" ${args:-}
+      create_alpine "$chroot_path"
       ;;
     debian)
       source "$LIB/create/debian.sh"
-      create_debian "${chroot_path}" ${args:-}
+      create_debian "${chroot_path}"
       ;;
     arch)
       source "$LIB/create/arch.sh"
-      create_arch "${chroot_path}" ${args:-}
+      create_arch "${chroot_path}"
       ;;
     *)
       error "Unknown chroot type: $chroot_type"
@@ -256,6 +279,29 @@ create_chroot() {
   bind_rw_list=$(trim "$bind_rw_list")
   chroot_bind_rw=$(echo ${bind_rw_list:-none} | tr ' ' ',')
 
+  info "Setting up shell environment in chroot..."
+  mkdir -p "$chroot_path/root"
+  cat >> "$chroot_path/root/.profile" << EOF
+export SHELL="$chroot_shell"
+export CHROOTCTL_CHROOT="$chroot_name"
+EOF
+
+  if [ -n "$chroot_env" ]; then
+    format_env_exports "$chroot_env" >> "$chroot_path/root/.profile"
+  fi
+
+  if [ "$chroot_user" != "none" ] && [ -n "$chroot_user" ]; then
+    mkdir -p "$chroot_path/home/$chroot_user"
+    cat >> "$chroot_path/home/$chroot_user/.profile" << EOF
+export SHELL="$chroot_shell"
+export CHROOTCTL_CHROOT="$chroot_name"
+EOF
+
+    if [ -n "$chroot_env" ]; then
+      format_env_exports "$chroot_env" >> "$chroot_path/home/$chroot_user/.profile"
+    fi
+  fi
+
   echo "$chroot_name $chroot_dir $chroot_type $chroot_shell $chroot_mount_private $chroot_mount_shared $chroot_bind_ro $chroot_bind_rw $chroot_user" >>"$DB"
 
   echo "Chroot environment $chroot_name created successfully."
@@ -275,6 +321,7 @@ show_help_create() {
   printf '%b\n' "  ${GREEN}--bind-rw${NC}       <src:dst> Bind mount read-write (source:destination)"
   printf '%b\n' "  ${GREEN}--from-local${NC}    <name>  Restore chroot from local cache"
   printf '%b\n' "  ${GREEN}--user${NC}           <name>  Create a non-root user in the chroot"
+  printf '%b\n' "  ${GREEN}--env${NC}            <vars>  Set environment variables (KEY=VALUE,KEY2=VALUE2)"
   printf '%b\n' "  ${GREEN}-h, --help${NC}              Show this help message"
   printf '%b\n' "${BOLD}${CYAN}Examples:${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test${NC}"
@@ -283,5 +330,6 @@ show_help_create() {
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test --mount-shared /your/path${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test --bind-ro ~/.claude:/home/armrib${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test --bind-rw /src:/dst${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test --env DEBUG=1,LOG_LEVEL=info${NC}"
   printf '%b\n' "${BOLD}${CYAN}For more information, visit:${NC} $REPOSITORY"
 }

@@ -2,6 +2,7 @@
 
 source "$LIB/utils/db.sh"
 source "$LIB/utils/colors.sh"
+source "$LIB/utils/env.sh"
 
 # Function to enter the chroot environment
 enter_chroot() {
@@ -33,11 +34,21 @@ enter_chroot() {
 
   local chroot_path="${chroot_dir}/${chroot_name}"
   local chroot_shell=${chroot_shell:-/bin/sh}
+  local chroot_env=""
 
   while [ "$#" -gt 0 ]; do
     case "$1" in
     --shell)
       chroot_shell="$2"
+      shift 2
+      ;;
+    --env)
+      if ! parse_env_vars "$2"; then
+        error "Invalid environment variables: $2"
+        echo "Format: KEY=VALUE,KEY2=VALUE2"
+        exit 1
+      fi
+      chroot_env="$parsed_env"
       shift 2
       ;;
     -h | --help)
@@ -115,8 +126,12 @@ enter_chroot() {
   unset bind_spec bind_src bind_dest
 
   echo "Entering chroot environment $chroot_name in $chroot_dir..."
-  export CHROOTCTL_CHROOT="$chroot_name"
-  export SHELL="$chroot_shell"
+
+  # Set temporary env vars for this session if provided
+  if [ -n "$chroot_env" ]; then
+    export_env_vars "$chroot_env"
+  fi
+
   if [ "$chroot_user" != "none" ] && [ -n "$chroot_user" ]; then
     chroot "$chroot_path" su - "$chroot_user"
   else
@@ -129,9 +144,11 @@ show_help_enter() {
   printf '%b\n' "${BOLD}${CYAN}Usage:${NC} $PROGRAM_NAME enter ${chroot_name:-} [options]"
   printf '%b\n' "${BOLD}${CYAN}Options:${NC}"
   printf '%b\n' "  ${GREEN}--shell${NC} <shell>       Default shell to use (default: /bin/sh)"
+  printf '%b\n' "  ${GREEN}--env${NC}  <vars>         Set environment variables for this session (KEY=VALUE,KEY2=VALUE2)"
   printf '%b\n' "  ${GREEN}-h, --help${NC}            Show this help message"
   printf '%b\n' "${BOLD}${CYAN}Examples:${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME enter test${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME enter test --shell /bin/bash${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME enter test --env DEBUG=1${NC}"
   printf '%b\n' "${BOLD}${CYAN}For more information, visit:${NC} $REPOSITORY"
 }

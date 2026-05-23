@@ -39,6 +39,31 @@
 
 ---
 
+## Usage
+
+### Create a chroot with environment variables
+
+You can set environment variables in a chroot using the `--env` flag. Variables are persisted in the chroot's `.profile` and will be available on every entry.
+
+```sh
+# Create a chroot with environment variables
+chrootctl create myenv --env DEBUG=1,LOG_LEVEL=info
+
+# Create a chroot with a user and environment variables
+chrootctl create myenv --user myuser --env NODE_ENV=production
+```
+
+### Enter a chroot with temporary environment variables
+
+You can temporarily set environment variables for a single session when entering a chroot:
+
+```sh
+# Enter with temporary env vars (session-only, not persisted)
+chrootctl enter myenv --env TEMP_VAR=value
+```
+
+---
+
 ## Installation
 
 ### Prerequisites
