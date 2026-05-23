@@ -33,14 +33,72 @@ mount_bind_shared() {
   fi
 }
 
+mount_bind_ro() {
+  local src=$1
+  local dest=$2
+
+  if [ -f "$src" ]; then
+    touch "$dest"
+    mount -v --bind -o ro "$src" "$dest"
+  elif [ -d "$src" ]; then
+    mkdir -p "$dest"
+    mount -v --rbind -o ro "$src" "$dest"
+  fi
+}
+
+mount_bind_rw() {
+  local src=$1
+  local dest=$2
+
+  if [ -f "$src" ]; then
+    touch "$dest"
+    mount -v --bind "$src" "$dest"
+  elif [ -d "$src" ]; then
+    mkdir -p "$dest"
+    mount -v --rbind "$src" "$dest"
+  fi
+}
+
 unmount_chroot() {
   local chroot_path="$1"
+  local chroot_mount_shared="${2:-}"
+  local chroot_mount_private="${3:-}"
 
   echo "Unmounting remaining filesystems..."
-  # Unmounts all filesystem under the specified directory tree.
-  for path in $(cat /proc/mounts | cut -d' ' -f2 | grep "^$(printf '%s\n' "$chroot_path" | sed 's/[[\.*^$/]/\\&/g')/" | sort -r); do
-    echo "Unmounting $path"
-    umount -fn "$path" || echo "Could not unmount $path"
+
+  # Unmount custom shared mounts first (in reverse order)
+  if [ -n "$chroot_mount_shared" ] && [ "$chroot_mount_shared" != "none" ]; then
+    echo "$chroot_mount_shared" | tr ',' '\n' | tac | while read -r mount_path; do
+      [ -z "$mount_path" ] && continue
+      local mount_point="${chroot_path}${mount_path}"
+      if mountpoint -q "$mount_point" 2>/dev/null; then
+        echo "Unmounting shared mount: $mount_point"
+        umount -fn "$mount_point" || umount -l "$mount_point" || true
+      fi
+    done
+  fi
+
+  # Unmount custom private mounts (in reverse order)
+  if [ -n "$chroot_mount_private" ] && [ "$chroot_mount_private" != "none" ]; then
+    echo "$chroot_mount_private" | tr ',' '\n' | tac | while read -r mount_path; do
+      [ -z "$mount_path" ] && continue
+      # Skip default mounts (handled below)
+      case "$mount_path" in
+      default) continue ;;
+      esac
+      local mount_point="${chroot_path}${mount_path}"
+      if mountpoint -q "$mount_point" 2>/dev/null; then
+        echo "Unmounting private mount: $mount_point"
+        umount -fn "$mount_point" || umount -l "$mount_point" || true
+      fi
+    done
+  fi
+
+  # Unmount default mounts in reverse order
+  for mount_point in "${chroot_path}/dev/pts" "${chroot_path}/sys" "${chroot_path}/dev" "${chroot_path}/proc"; do
+    if mountpoint -q "$mount_point" 2>/dev/null; then
+      echo "Unmounting: $mount_point"
+      umount -fn "$mount_point" || umount -l "$mount_point" || true
+    fi
   done
-  unset path
 }

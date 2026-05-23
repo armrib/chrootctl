@@ -47,6 +47,7 @@ create_chroot() {
   local chroot_dir="/tmp"
   local chroot_type="alpine"
   local chroot_shell="/bin/sh"
+  local chroot_user="none"
 
   case "${1:-}" in
   -h | --help)
@@ -78,8 +79,20 @@ create_chroot() {
       local chroot_mount_shared="${chroot_mount_shared:-}$2 "
       shift 2
       ;;
+    --bind-ro)
+      local chroot_bind_ro="${chroot_bind_ro:-}$2 "
+      shift 2
+      ;;
+    --bind-rw)
+      local chroot_bind_rw="${chroot_bind_rw:-}$2 "
+      shift 2
+      ;;
     --from-local)
       local chroot_from_local="$2"
+      shift 2
+      ;;
+    --user)
+      chroot_user="$2"
       shift 2
       ;;
     *)
@@ -115,6 +128,19 @@ create_chroot() {
       error "Unknown chroot type: $chroot_type"
       show_help_create
       exit 1
+      ;;
+    esac
+  fi
+
+  if [ "$chroot_user" != "none" ]; then
+    case "$chroot_type" in
+    alpine)
+      info "Creating user $chroot_user..."
+      chroot "$chroot_path" adduser -D "$chroot_user"
+      ;;
+    *)
+      info "Creating user $chroot_user..."
+      chroot "$chroot_path" useradd -m "$chroot_user"
       ;;
     esac
   fi
@@ -190,7 +216,47 @@ create_chroot() {
   shared_mounts=$(trim "$shared_mounts")
   chroot_mount_shared=$(echo ${shared_mounts:-none} | tr ' ' ',')
 
-  echo "$chroot_name $chroot_dir $chroot_type $chroot_shell $chroot_mount_private $chroot_mount_shared" >>"$DB"
+  # Handle read-only bind mounts (source:destination)
+  local bind_ro_list=""
+  for bind_spec in ${chroot_bind_ro:-}; do
+    [ -z "$bind_spec" ] && continue
+    local src=$(echo "$bind_spec" | cut -d: -f1)
+    local dest=$(echo "$bind_spec" | cut -d: -f2-)
+
+    src=$(eval echo "$src")
+    if [ -e "$src" ]; then
+      info "Mounting read-only bind: $src -> $dest"
+      mount_bind_ro "$src" "${chroot_path}${dest}"
+      bind_ro_list="$bind_ro_list $bind_spec"
+    else
+      error "Source path does not exist: $src"
+      exit 1
+    fi
+  done
+  bind_ro_list=$(trim "$bind_ro_list")
+  chroot_bind_ro=$(echo ${bind_ro_list:-none} | tr ' ' ',')
+
+  # Handle read-write bind mounts (source:destination)
+  local bind_rw_list=""
+  for bind_spec in ${chroot_bind_rw:-}; do
+    [ -z "$bind_spec" ] && continue
+    local src=$(echo "$bind_spec" | cut -d: -f1)
+    local dest=$(echo "$bind_spec" | cut -d: -f2-)
+
+    src=$(eval echo "$src")
+    if [ -e "$src" ]; then
+      info "Mounting read-write bind: $src -> $dest"
+      mount_bind_rw "$src" "${chroot_path}${dest}"
+      bind_rw_list="$bind_rw_list $bind_spec"
+    else
+      error "Source path does not exist: $src"
+      exit 1
+    fi
+  done
+  bind_rw_list=$(trim "$bind_rw_list")
+  chroot_bind_rw=$(echo ${bind_rw_list:-none} | tr ' ' ',')
+
+  echo "$chroot_name $chroot_dir $chroot_type $chroot_shell $chroot_mount_private $chroot_mount_shared $chroot_bind_ro $chroot_bind_rw $chroot_user" >>"$DB"
 
   echo "Chroot environment $chroot_name created successfully."
   echo "Enter the chroot with '$PROGRAM_NAME enter $chroot_name'."
@@ -205,12 +271,17 @@ show_help_create() {
   printf '%b\n' "  ${GREEN}--shell${NC}         <shell> Default shell to use (default: /bin/sh)"
   printf '%b\n' "  ${GREEN}--mount-private${NC} <path>  Private mount point (default, [path])"
   printf '%b\n' "  ${GREEN}--mount-shared${NC}  <path>  Shared mount point"
+  printf '%b\n' "  ${GREEN}--bind-ro${NC}       <src:dst> Bind mount read-only (source:destination)"
+  printf '%b\n' "  ${GREEN}--bind-rw${NC}       <src:dst> Bind mount read-write (source:destination)"
   printf '%b\n' "  ${GREEN}--from-local${NC}    <name>  Restore chroot from local cache"
+  printf '%b\n' "  ${GREEN}--user${NC}           <name>  Create a non-root user in the chroot"
   printf '%b\n' "  ${GREEN}-h, --help${NC}              Show this help message"
   printf '%b\n' "${BOLD}${CYAN}Examples:${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test -d /tmp/chroot${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test --mount-private default${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test --mount-shared /your/path${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test --bind-ro ~/.claude:/home/armrib${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test --bind-rw /src:/dst${NC}"
   printf '%b\n' "${BOLD}${CYAN}For more information, visit:${NC} $REPOSITORY"
 }

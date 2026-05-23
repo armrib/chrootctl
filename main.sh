@@ -2,6 +2,11 @@
 
 set -euo pipefail # Exit on error, undefined variables, and pipe failures
 
+# Escalate to root with doas if not already running as root
+if [ "$(id -u)" -ne 0 ]; then
+  exec doas "$0" "$@"
+fi
+
 # Global variables
 readonly PROGRAM_NAME="chrootctl"
 readonly VERSION="0.4.0"

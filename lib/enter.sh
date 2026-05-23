@@ -26,6 +26,10 @@ enter_chroot() {
   local chroot_shell=$(echo "$chroot_params" | awk '{print $4}')
   local chroot_mount_private=$(echo "$chroot_params" | awk '{print $5}')
   local chroot_mount_shared=$(echo "$chroot_params" | awk '{print $6}')
+  local chroot_bind_ro=$(echo "$chroot_params" | awk '{print $7}')
+  local chroot_bind_rw=$(echo "$chroot_params" | awk '{print $8}')
+  local chroot_user=$(echo "$chroot_params" | awk '{print $9}')
+  chroot_user="${chroot_user:-none}"
 
   local chroot_path="${chroot_dir}/${chroot_name}"
   local chroot_shell=${chroot_shell:-/bin/sh}
@@ -80,8 +84,42 @@ enter_chroot() {
   done
   unset shared_mount
 
+  echo "Check missing read-only bind mount points..."
+  for bind_spec in $(echo "$chroot_bind_ro" | tr ',' ' ' | sed 's#none##g'); do
+    [ -z "$bind_spec" ] && continue
+    local bind_src=$(echo "$bind_spec" | cut -d: -f1)
+    local bind_dest=$(echo "$bind_spec" | cut -d: -f2-)
+    bind_src=$(eval echo "$bind_src")
+
+    if ! echo "$current_mounts" | grep -qF "${chroot_path}${bind_dest}"; then
+      echo "Warn: Bind mount $bind_dest is not mounted, mounting..."
+      source "$LIB/utils/mount.sh"
+      mount_bind_ro "$bind_src" "${chroot_path}${bind_dest}"
+    fi
+  done
+  unset bind_spec bind_src bind_dest
+
+  echo "Check missing read-write bind mount points..."
+  for bind_spec in $(echo "$chroot_bind_rw" | tr ',' ' ' | sed 's#none##g'); do
+    [ -z "$bind_spec" ] && continue
+    local bind_src=$(echo "$bind_spec" | cut -d: -f1)
+    local bind_dest=$(echo "$bind_spec" | cut -d: -f2-)
+    bind_src=$(eval echo "$bind_src")
+
+    if ! echo "$current_mounts" | grep -qF "${chroot_path}${bind_dest}"; then
+      echo "Warn: Bind mount $bind_dest is not mounted, mounting..."
+      source "$LIB/utils/mount.sh"
+      mount_bind_rw "$bind_src" "${chroot_path}${bind_dest}"
+    fi
+  done
+  unset bind_spec bind_src bind_dest
+
   echo "Entering chroot environment $chroot_name in $chroot_dir..."
-  chroot "$chroot_path" "$chroot_shell"
+  if [ "$chroot_user" != "none" ] && [ -n "$chroot_user" ]; then
+    chroot "$chroot_path" su - "$chroot_user"
+  else
+    chroot "$chroot_path" "$chroot_shell"
+  fi
 }
 
 show_help_enter() {

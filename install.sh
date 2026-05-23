@@ -55,6 +55,8 @@ chmod 755 "$INSTALL_DIR/$PROGRAM_NAME"
 
 # Copy utils library
 cp -r "$SCRIPT_DIR/lib" "$INSTALL_DIR/"
+chmod -R 755 "$INSTALL_DIR/lib"
+find "$INSTALL_DIR/lib" -type f -exec chmod 644 {} \;
 
 # Prepare database
 touch "$DATA_DIR/db"

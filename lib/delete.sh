@@ -45,9 +45,11 @@ delete_chroot() {
   # Wait for all chroot processes to terminate
   wait_and_kill_all_chroot_process "$chroot_path"
 
-  # Unmount all filesystems under the chroot
+  # Get mount info from database and unmount
   source "$LIB/utils/mount.sh"
-  unmount_chroot "$chroot_path"
+  local chroot_mount_private=$(chroot_exists "$chroot_name" all | awk '{print $5}')
+  local chroot_mount_shared=$(chroot_exists "$chroot_name" all | awk '{print $6}')
+  unmount_chroot "$chroot_path" "$chroot_mount_shared" "$chroot_mount_private"
 
   info "Removing $chroot_path"
   rm -rf "$chroot_path"
