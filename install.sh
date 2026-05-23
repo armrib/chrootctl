@@ -51,7 +51,7 @@ fi
 
 # Copy main script
 cp "$SCRIPT_DIR/main.sh" "$INSTALL_DIR/$PROGRAM_NAME"
-chmod 700 "$INSTALL_DIR/$PROGRAM_NAME"
+chmod 755 "$INSTALL_DIR/$PROGRAM_NAME"
 
 # Copy utils library
 cp -r "$SCRIPT_DIR/lib" "$INSTALL_DIR/"
