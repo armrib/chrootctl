@@ -82,6 +82,12 @@ if ! ./main.sh exec test-user test -d /home/testuser; then
   exit 1
 fi
 
+# Verify user owns their home directory
+if ! ./main.sh exec test-user test -O /home/testuser; then
+  echo "User ownership test failed: testuser does not own /home/testuser"
+  exit 1
+fi
+
 ./main.sh delete test-user
 
 # Test create with environment variables
@@ -129,5 +135,22 @@ if ! ./main.sh exec test-pkg test -f /usr/bin/git; then
 fi
 
 ./main.sh delete test-pkg
+
+# Test is_chroot function
+./main.sh create test-is-chroot
+
+# Verify is_chroot returns 0 (true) when inside chroot
+if ! echo 'is_chroot && exit 0; exit 1' | ./main.sh enter test-is-chroot; then
+  echo "is_chroot test failed: function returned false inside chroot"
+  exit 1
+fi
+
+# Verify is_chroot status prints the correct message
+if ! echo 'is_chroot status' | ./main.sh enter test-is-chroot | grep -q "Inside chroot: test-is-chroot"; then
+  echo "is_chroot status test failed: incorrect output"
+  exit 1
+fi
+
+./main.sh delete test-is-chroot
 
 echo "Test passed!"

@@ -313,6 +313,21 @@ create_chroot() {
   cat >> "$chroot_path/root/.profile" << EOF
 export SHELL="$chroot_shell"
 export CHROOTCTL_CHROOT="$chroot_name"
+
+is_chroot() {
+  if [ "\${1:-}" = "status" ]; then
+    if [ -n "\${CHROOTCTL_CHROOT:-}" ]; then
+      echo "Inside chroot: \$CHROOTCTL_CHROOT"
+    else
+      echo "Not in a chroot"
+    fi
+  else
+    if [ -n "\${CHROOTCTL_CHROOT:-}" ]; then
+      return 0
+    fi
+    return 1
+  fi
+}
 EOF
 
   if [ -n "$chroot_env" ]; then
@@ -324,11 +339,28 @@ EOF
     cat >> "$chroot_path/home/$chroot_user/.profile" << EOF
 export SHELL="$chroot_shell"
 export CHROOTCTL_CHROOT="$chroot_name"
+
+is_chroot() {
+  if [ "\${1:-}" = "status" ]; then
+    if [ -n "\${CHROOTCTL_CHROOT:-}" ]; then
+      echo "Inside chroot: \$CHROOTCTL_CHROOT"
+    else
+      echo "Not in a chroot"
+    fi
+  else
+    if [ -n "\${CHROOTCTL_CHROOT:-}" ]; then
+      return 0
+    fi
+    return 1
+  fi
+}
 EOF
 
     if [ -n "$chroot_env" ]; then
       format_env_exports "$chroot_env" >> "$chroot_path/home/$chroot_user/.profile"
     fi
+
+    chroot "$chroot_path" chown -R "$chroot_user:$chroot_user" "/home/$chroot_user"
   fi
 
   echo "$chroot_name $chroot_dir $chroot_type $chroot_shell $chroot_mount_private $chroot_mount_shared $chroot_bind_ro $chroot_bind_rw $chroot_user" >>"$DB"
