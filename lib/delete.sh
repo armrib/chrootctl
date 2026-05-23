@@ -1,6 +1,7 @@
 #!/bin/sh
 
 source "$LIB/utils/db.sh"
+source "$LIB/utils/colors.sh"
 
 # Function to delete the chroot environment
 delete_chroot() {
@@ -48,14 +49,14 @@ delete_chroot() {
   source "$LIB/utils/mount.sh"
   unmount_chroot "$chroot_path"
 
-  echo "Removing $chroot_path"
+  info "Removing $chroot_path"
   rm -rf "$chroot_path"
 
   # Remove chroot from DB (POSIX-compliant)
   if [ -f "$DB" ] && [ -w "$DB" ]; then
-    echo "Removing chroot from DB..."
+    info "Removing chroot from DB..."
     local tmpfile=$(mktemp) || {
-      echo "Error: Failed to create temporary file." >&2
+      error "Failed to create temporary file."
       exit 1
     }
     trap 'rm -f "$tmpfile"' EXIT INT TERM HUP
@@ -67,11 +68,11 @@ delete_chroot() {
     rm -f "$tmpfile"
     trap - EXIT INT TERM HUP
   else
-    echo "Error: Database file $DB does not exist or is not writable." >&2
+    error "Database file $DB does not exist or is not writable."
     exit 1
   fi
 
-  echo "Chroot environment $chroot_name deleted successfully."
+  success "Chroot environment $chroot_name deleted successfully."
 }
 
 wait_and_kill_all_chroot_process() {

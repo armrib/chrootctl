@@ -1,6 +1,7 @@
 #!/bin/sh
 
 source "$LIB/utils/db.sh"
+source "$LIB/utils/colors.sh"
 
 # Function to enter the chroot environment
 enter_chroot() {
@@ -8,7 +9,7 @@ enter_chroot() {
     readonly chroot_name=$1
     shift
   else
-    echo "Error: Missing chroot name!"
+    error "Missing chroot name!"
     show_help_enter
     exit 1
   fi

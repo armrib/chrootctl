@@ -1,6 +1,7 @@
 #!/bin/sh
 
 source "$LIB/utils/db.sh"
+source "$LIB/utils/colors.sh"
 
 save_chroot() {
   if [ -n "${1:-}" ]; then

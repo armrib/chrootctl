@@ -1,6 +1,7 @@
 #!/bin/sh
 
 source "$LIB/utils/db.sh"
+source "$LIB/utils/colors.sh"
 
 # Function to create the chroot environment
 create_chroot() {
@@ -11,13 +12,13 @@ create_chroot() {
       shift
       ;;
     *)
-      echo "Error: Chroot name must start with a letter!"
+      error "Chroot name must start with a letter!"
       show_help
       exit 1
       ;;
     esac
   else
-    echo "Missing chroot name"
+    error "Missing chroot name"
     show_help_create
     exit 1
   fi
@@ -25,21 +26,21 @@ create_chroot() {
   # Check if the name exists
   local chroot_path=$(chroot_exists "$chroot_name")
   if [ -e "$chroot_path" ]; then
-    echo "Chroot environment $chroot_name already exists."
+    error "Chroot environment $chroot_name already exists."
     exit 1
   fi
 
   if sysctl -ne kernel.grsecurity.chroot_deny_chmod; then
-    echo "Warning: can't suid/sgid inside chroot" >&2
+    warning "can't suid/sgid inside chroot"
   fi
   if sysctl -ne kernel.grsecurity.chroot_deny_chroot; then
-    echo "Warning: can't chroot inside chroot" >&2
+    warning "can't chroot inside chroot"
   fi
   if sysctl -ne kernel.grsecurity.chroot_deny_mknod; then
-    echo "Warning: can't mknod inside chroot" >&2
+    warning "can't mknod inside chroot"
   fi
   if sysctl -ne kernel.grsecurity.chroot_deny_mount; then
-    echo "Warning: can't mount inside chroot" >&2
+    warning "can't mount inside chroot"
   fi
 
   #Default values
@@ -89,11 +90,11 @@ create_chroot() {
   done
   local chroot_path="$chroot_dir/$chroot_name"
 
-  echo "Creating chroot with name $chroot_name in $chroot_dir..."
+  info "Creating chroot with name $chroot_name in $chroot_dir..."
   mkdir -p "$chroot_path"
 
   if [ -n "${chroot_from_local:-}" ]; then
-    echo "Restoring chroot from local cache $chroot_from_local..."
+    info "Restoring chroot from local cache $chroot_from_local..."
     # Extract the file
     tar -xzf "$CHROOT_CACHE_DIR/${chroot_from_local}.tar.gz" -C "$chroot_path"
   else
@@ -111,7 +112,7 @@ create_chroot() {
       create_arch "${chroot_path}" ${args:-}
       ;;
     *)
-      echo "Unknown chroot type: $chroot_type"
+      error "Unknown chroot type: $chroot_type"
       show_help_create
       exit 1
       ;;
@@ -125,7 +126,7 @@ create_chroot() {
   for mount_private in default ${chroot_mount_private:-}; do
     case "$mount_private" in
     default)
-      echo "Mounting default private mount points..."
+      info "Mounting default private mount points..."
       mount_proc "$chroot_path"
       mount_bind_private /dev "$chroot_path/dev"
       mount_bind_private /sys "$chroot_path/sys"

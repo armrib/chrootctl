@@ -1,10 +1,12 @@
 #!/bin/sh
 
+source "$LIB/utils/colors.sh"
+
 list_chroots() {
-  echo "List of chroot environments:"
+  header "List of chroot environments:"
 
   if [ ! -f "$DB" ]; then
-    echo "Error: Database file '$DB' not found." >&2
+    error "Database file '$DB' not found."
     return 1
   fi
 
@@ -47,7 +49,7 @@ list_chroots() {
   unset line
 
   # Print header
-  printf "%-*s  %-*s  %-*s  %-*s  %-*s  %-*s\n" "$col1_width" "Name" "$col2_width" "Path" "$col3_width" "Type" "$col4_width" "Shell" "$col5_width" "Mount Private" "$col6_width" "Mount Shared"
+  printf '%b\n' "${BOLD}${CYAN}%-*s${NC}  ${BOLD}${CYAN}%-*s${NC}  ${BOLD}${CYAN}%-*s${NC}  ${BOLD}${CYAN}%-*s${NC}  ${BOLD}${CYAN}%-*s${NC}  ${BOLD}${CYAN}%-*s${NC}" "$col1_width" "Name" "$col2_width" "Path" "$col3_width" "Type" "$col4_width" "Shell" "$col5_width" "Mount Private" "$col6_width" "Mount Shared"
 
   # Print separator line
   printf "%${col1_width}s  %${col2_width}s  %${col3_width}s  %${col4_width}s  %${col5_width}s  %${col6_width}s\n" | tr ' ' '-'

@@ -4,7 +4,7 @@ set -euo pipefail # Exit on error, undefined variables, and pipe failures
 
 # Escalate to root with doas if not already running as root
 if [ "$(id -u)" -ne 0 ]; then
-  exec doas -n "$0" "$@"
+  exec doas "$0" "$@"
 fi
 
 # Global variables
