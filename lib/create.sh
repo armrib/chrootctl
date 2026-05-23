@@ -360,7 +360,7 @@ EOF
       format_env_exports "$chroot_env" >> "$chroot_path/home/$chroot_user/.profile"
     fi
 
-    chroot "$chroot_path" chown -R "$chroot_user:$chroot_user" "/home/$chroot_user"
+    chroot "$chroot_path" chown "$chroot_user:$chroot_user" "/home/$chroot_user" "/home/$chroot_user/.profile"
   fi
 
   echo "$chroot_name $chroot_dir $chroot_type $chroot_shell $chroot_mount_private $chroot_mount_shared $chroot_bind_ro $chroot_bind_rw $chroot_user" >>"$DB"
