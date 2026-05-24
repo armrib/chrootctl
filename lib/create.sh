@@ -60,6 +60,31 @@ create_chroot() {
   *) ;;
   esac
 
+  # Pre-pass: if --from is given, load saved metadata as defaults so
+  # explicit CLI args parsed below can override individual fields
+  {
+    local _fl_found=false
+    for _arg in "$@"; do
+      if [ "$_fl_found" = "true" ]; then
+        if [ -f "$CHROOT_CACHE_DIR/${_arg}.meta" ]; then
+          local _meta
+          _meta=$(cat "$CHROOT_CACHE_DIR/${_arg}.meta")
+          chroot_dir=$(echo "$_meta"   | awk '{print $2}')
+          chroot_type=$(echo "$_meta"  | awk '{print $3}')
+          chroot_shell=$(echo "$_meta" | awk '{print $4}')
+          chroot_mount_private=$(echo "$_meta" | awk '{print $5}' | tr ',' ' ')
+          chroot_mount_shared=$(echo "$_meta"  | awk '{print $6}' | tr ',' ' ')
+          chroot_bind_ro=$(echo "$_meta"       | awk '{print $7}' | tr ',' ' ')
+          chroot_bind_rw=$(echo "$_meta"       | awk '{print $8}' | tr ',' ' ')
+          chroot_user=$(echo "$_meta"  | awk '{print $9}')
+        fi
+        break
+      fi
+      [ "$_arg" = "--from" ] && _fl_found=true
+    done
+    unset _fl_found _arg _meta
+  }
+
   while [ "$#" -gt 0 ]; do
     case "$1" in
     -d | --dir)
@@ -90,7 +115,7 @@ create_chroot() {
       local chroot_bind_rw="${chroot_bind_rw:-}$2 "
       shift 2
       ;;
-    --from-local)
+    --from)
       local chroot_from_local="$2"
       shift 2
       ;;
@@ -124,20 +149,7 @@ create_chroot() {
 
   if [ -n "${chroot_from_local:-}" ]; then
     info "Restoring chroot from local cache $chroot_from_local..."
-    # Extract the file
     tar -xzf "$CHROOT_CACHE_DIR/${chroot_from_local}.tar.gz" -C "$chroot_path"
-
-    # Restore mount configuration and user from metadata if available
-    if [ -f "$CHROOT_CACHE_DIR/${chroot_from_local}.meta" ]; then
-      local meta=$(cat "$CHROOT_CACHE_DIR/${chroot_from_local}.meta")
-      chroot_type=$(echo "$meta" | awk '{print $3}')
-      chroot_shell=$(echo "$meta" | awk '{print $4}')
-      chroot_mount_private=$(echo "$meta" | awk '{print $5}')
-      chroot_mount_shared=$(echo "$meta" | awk '{print $6}')
-      chroot_bind_ro=$(echo "$meta" | awk '{print $7}')
-      chroot_bind_rw=$(echo "$meta" | awk '{print $8}')
-      chroot_user=$(echo "$meta" | awk '{print $9}')
-    fi
   else
     case "$chroot_type" in
     alpine)
@@ -380,7 +392,7 @@ show_help_create() {
   printf '%b\n' "  ${GREEN}--mount-shared${NC}  <path>  Shared mount point"
   printf '%b\n' "  ${GREEN}--bind-ro${NC}       <src:dst> Bind mount read-only (source:destination)"
   printf '%b\n' "  ${GREEN}--bind-rw${NC}       <src:dst> Bind mount read-write (source:destination)"
-  printf '%b\n' "  ${GREEN}--from-local${NC}    <name>  Restore chroot from local cache"
+  printf '%b\n' "  ${GREEN}--from${NC}          <name>  Restore chroot from local cache"
   printf '%b\n' "  ${GREEN}--user${NC}           <name>  Create a non-root user in the chroot"
   printf '%b\n' "  ${GREEN}--env${NC}            <vars>  Set environment variables (KEY=VALUE,KEY2=VALUE2)"
   printf '%b\n' "  ${GREEN}--pkg${NC}            <pkgs>  Install packages at creation time (comma-separated, e.g. curl,git)"

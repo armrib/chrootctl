@@ -120,7 +120,7 @@ save_chroot() {
   fi
 
   echo "You can now delete the chroot with 'chrootctl delete $save_chroot_name'."
-  echo "To restore the chroot, run 'chrootctl create $save_chroot_name --from-local $save_chroot_name'."
+  echo "To restore the chroot, run 'chrootctl create $save_chroot_name --from $save_chroot_name'."
 }
 
 show_help_save() {
