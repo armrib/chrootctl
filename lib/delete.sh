@@ -136,6 +136,6 @@ show_help_delete() {
   printf '%b\n' "  ${GREEN}-h, --help${NC}            Show this help message"
   printf '%b\n' "${BOLD}${CYAN}Examples:${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME delete test${NC}"
-  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME delete test --force /tmp/chroot${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME delete test --force /var/lib/chrootctl/test${NC}"
   printf '%b\n' "${BOLD}${CYAN}For more information, visit:${NC} $REPOSITORY"
 }

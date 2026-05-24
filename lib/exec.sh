@@ -14,6 +14,24 @@ exec_in_chroot() {
     exit 1
   fi
 
+  # Parse flags
+  local chroot_env=""
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    --env)
+      chroot_env="$2"
+      shift 2
+      ;;
+    -h | --help)
+      show_help_exec
+      exit 0
+      ;;
+    *)
+      break
+      ;;
+    esac
+  done
+
   if [ -z "${1:-}" ]; then
     error "Missing command to execute!"
     show_help_exec
@@ -103,19 +121,30 @@ exec_in_chroot() {
 
   echo "Executing command in chroot environment $chroot_name..."
   if [ "$chroot_user" != "none" ] && [ -n "$chroot_user" ]; then
-    chroot "$chroot_path" su - "$chroot_user" -c "$*"
+    if [ -n "$chroot_env" ]; then
+      chroot "$chroot_path" su - "$chroot_user" -c "$chroot_env $*"
+    else
+      chroot "$chroot_path" su - "$chroot_user" -c "$*"
+    fi
   else
-    chroot "$chroot_path" "$@"
+    if [ -n "$chroot_env" ]; then
+      chroot "$chroot_path" env $chroot_env "$@"
+    else
+      chroot "$chroot_path" "$@"
+    fi
   fi
 }
 
 show_help_exec() {
   printf '%b\n' "${BOLD}${BLUE}Chrootctl exec v${VERSION}${NC}"
-  printf '%b\n' "${BOLD}${CYAN}Usage:${NC} $PROGRAM_NAME exec ${chroot_name:-} <command> [args...]"
+  printf '%b\n' "${BOLD}${CYAN}Usage:${NC} $PROGRAM_NAME exec ${chroot_name:-} [--env VAR=value...] <command> [args...]"
   printf '%b\n' "${BOLD}${CYAN}Description:${NC} Execute a command in a chroot without entering it interactively"
+  printf '%b\n' "${BOLD}${CYAN}Options:${NC}"
+  printf '%b\n' "  ${YELLOW}--env${NC}             Set environment variables (comma or space-separated KEY=VALUE pairs)"
   printf '%b\n' "${BOLD}${CYAN}Examples:${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME exec test /bin/echo hello${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME exec test /bin/ls -la /${NC}"
-  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME exec test /bin/sh -c 'echo \$PATH'${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME exec test --env IS_SANDBOX=1 /bin/sh -c 'echo \$IS_SANDBOX'${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME exec test --env FOO=bar --env BAZ=qux /bin/echo hi${NC}"
   printf '%b\n' "${BOLD}${CYAN}For more information, visit:${NC} $REPOSITORY"
 }

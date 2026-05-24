@@ -60,10 +60,10 @@ show_help_create_debian() {
   printf '%b\n' "${BOLD}${CYAN}Usage:${NC} $PROGRAM_NAME create $(basename $chroot_path) -t debian [options]"
   printf '%b\n' "${BOLD}${CYAN}Options:${NC}"
   printf '%b\n' "  ${GREEN}-s, --suite${NC} <suite> Debian suite to use (stable, testing, ...) (default: stable)"
-  printf '%b\n' "  ${GREEN}-d, --dir${NC}   <path>  Path to the chroot environment (default: /tmp)"
+  printf '%b\n' "  ${GREEN}-d, --dir${NC}   <path>  Path to the chroot environment (default: /var/lib/chrootctl)"
   printf '%b\n' "  ${GREEN}-h, --help${NC}          Show this help message"
   printf '%b\n' "${BOLD}${CYAN}Examples:${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test${NC}"
-  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test -d /tmp/chroot${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test -d /var/lib/chrootctl/test${NC}"
   printf '%b\n' "${BOLD}${CYAN}For more information, visit:${NC} $REPOSITORY"
 }

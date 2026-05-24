@@ -46,7 +46,7 @@ create_chroot() {
   fi
 
   #Default values
-  local chroot_dir="/tmp"
+  local chroot_dir="/var/lib/chrootctl"
   local chroot_type="alpine"
   local chroot_shell="/bin/sh"
   local chroot_user="none"
@@ -390,7 +390,7 @@ show_help_create() {
   printf '%b\n' "${BOLD}${CYAN}Usage:${NC} $PROGRAM_NAME create [options]"
   printf '%b\n' "${BOLD}${CYAN}Options:${NC}"
   printf '%b\n' "  ${GREEN}-t, --type${NC}      <type>  Type of chroot environment (alpine, debian) (default: alpine)"
-  printf '%b\n' "  ${GREEN}-d, --dir${NC}       <path>  Path to the chroot environment (default: /tmp)"
+  printf '%b\n' "  ${GREEN}-d, --dir${NC}       <path>  Path to the chroot environment (default: /var/lib/chrootctl)"
   printf '%b\n' "  ${GREEN}--shell${NC}         <shell> Default shell to use (default: /bin/sh)"
   printf '%b\n' "  ${GREEN}--mount-private${NC} <path>  Private mount point (default, [path])"
   printf '%b\n' "  ${GREEN}--mount-shared${NC}  <path>  Shared mount point"
@@ -403,7 +403,7 @@ show_help_create() {
   printf '%b\n' "  ${GREEN}-h, --help${NC}              Show this help message"
   printf '%b\n' "${BOLD}${CYAN}Examples:${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test${NC}"
-  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test -d /tmp/chroot${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test -d /var/lib/chrootctl/test${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test --mount-private default${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test --mount-shared /your/path${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test --bind-ro ~/.claude:/home/armrib${NC}"

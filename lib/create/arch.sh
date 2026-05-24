@@ -51,6 +51,6 @@ show_help_create_arch() {
   printf '%b\n' "  ${GREEN}-h, --help${NC}       Show this help message"
   printf '%b\n' "${BOLD}${CYAN}Examples:${NC}"
   printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test -t arch${NC}"
-  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test -t arch -d /tmp/chroot${NC}"
+  printf '%b\n' "  ${YELLOW}$PROGRAM_NAME create test -t arch -d /var/lib/chrootctl/test${NC}"
   printf '%b\n' "${BOLD}${CYAN}For more information, visit:${NC} $REPOSITORY"
 }
