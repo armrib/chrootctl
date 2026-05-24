@@ -214,6 +214,7 @@ create_chroot() {
   # Mounts all given read-only mount points
   local private_mounts=""
   for mount_private in default ${chroot_mount_private:-}; do
+    [ "$mount_private" = "none" ] && continue
     case "$mount_private" in
     default)
       info "Mounting default private mount points..."
@@ -256,6 +257,7 @@ create_chroot() {
   # Mounts all given read-write mount points
   local shared_mounts=""
   for mount_shared in ${chroot_mount_shared:-}; do
+    [ "$mount_shared" = "none" ] && continue
     case "$mount_shared" in
     /*)
       echo "Mounting shared mount point $mount_shared..."
@@ -284,6 +286,7 @@ create_chroot() {
   local bind_ro_list=""
   for bind_spec in ${chroot_bind_ro:-}; do
     [ -z "$bind_spec" ] && continue
+    [ "$bind_spec" = "none" ] && continue
     local src=$(echo "$bind_spec" | cut -d: -f1)
     local dest=$(echo "$bind_spec" | cut -d: -f2-)
 
@@ -304,6 +307,7 @@ create_chroot() {
   local bind_rw_list=""
   for bind_spec in ${chroot_bind_rw:-}; do
     [ -z "$bind_spec" ] && continue
+    [ "$bind_spec" = "none" ] && continue
     local src=$(echo "$bind_spec" | cut -d: -f1)
     local dest=$(echo "$bind_spec" | cut -d: -f2-)
 
