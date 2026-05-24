@@ -81,6 +81,9 @@ The script will automatically escalate to root using `doas` if needed. Examples:
 ./main.sh list                     # List all chrroots
 ./main.sh cache                    # Show cached distributions
 ./main.sh saved                    # Show saved chrroots
+
+# Restore from saved image with parameter overrides
+./main.sh create mydev --from base-image --user alice --mount-private /src
 ```
 
 ### Version
@@ -109,6 +112,27 @@ echo "$CHROOTCTL_CHROOT"  # Prints chroot name, or empty if not in one
 ```
 
 ## Common Development Patterns
+
+### Restoring from Saved Images
+
+You can create a chroot from a previously saved image using the `--from` flag. All other parameters are merged:
+- Saved metadata (type, shell, user, mounts) serves as the base configuration
+- Any CLI parameters override those defaults
+- Mount flags accumulate (both saved and new mounts are applied)
+
+Example workflow:
+```sh
+# Create and configure a base chroot
+./main.sh create base -t alpine --user dev
+./main.sh save base
+
+# Restore from saved, with additional customizations
+./main.sh create derived --from base --mount-private /home --pkg git,curl
+
+# The new chroot has:
+# - Alpine type and dev user from the saved image
+# - Plus /home mount from the new command
+```
 
 ### Adding a New Distribution
 1. Create `lib/create/<distro-name>.sh` with a function like other distro scripts
