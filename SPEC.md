@@ -68,3 +68,8 @@ Rootfs .tar.gz → cache by distro (alpine|debian|…). 2× create → reuse ⊥
 
 ### V13: Processes terminated before unmount
 Before unmount: ∀ proc @ chroot → SIGTERM → wait 3s → SIGKILL. ∴ prevent unmount-busy.
+
+### V14: Default mount never persisted
+'default' ⊥ persisted to metadata. Internal keyword triggering auto-mount /proc, /sys, /dev.
+∀ create → 'default' ∀ applied. ∀ save → strip 'default' from mount_private b4 .meta.
+∀ --from restore → 'default' auto-reapplied; ! dup. (User mounts: /path1, /path2, not 'default'.)
