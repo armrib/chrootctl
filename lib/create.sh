@@ -213,7 +213,11 @@ create_chroot() {
   source "$LIB/utils/trim.sh"
   # Mounts all given read-only mount points
   local private_mounts=""
-  for mount_private in default ${chroot_mount_private:-}; do
+  local mount_list="$chroot_mount_private"
+  if [ -z "$chroot_mount_private" ] || ! echo "$chroot_mount_private" | grep -qw "default"; then
+    mount_list="default $chroot_mount_private"
+  fi
+  for mount_private in $mount_list; do
     [ "$mount_private" = "none" ] && continue
     case "$mount_private" in
     default)

@@ -71,8 +71,10 @@ save_chroot() {
   # Compress the chroot
   (cd "$chroot_path" && tar -czf "$CHROOT_CACHE_DIR/${save_chroot_name}.tar.gz" .)
 
-  # Save metadata for restoration
-  echo "$save_chroot_name $chroot_dir $chroot_type $chroot_shell $chroot_mount_private $chroot_mount_shared $chroot_bind_ro $chroot_bind_rw $chroot_user" >"$CHROOT_CACHE_DIR/${save_chroot_name}.meta"
+  # Save metadata for restoration (strip 'default' from mount_private—it's always auto-applied)
+  local saved_mount_private=$(echo "$chroot_mount_private" | sed 's/\bdefault\b//g' | sed 's/^,//;s/,$//' | tr ',' ' ' | xargs echo | tr ' ' ',')
+  [ -z "$saved_mount_private" ] && saved_mount_private="none"
+  echo "$save_chroot_name $chroot_dir $chroot_type $chroot_shell $saved_mount_private $chroot_mount_shared $chroot_bind_ro $chroot_bind_rw $chroot_user" >"$CHROOT_CACHE_DIR/${save_chroot_name}.meta"
 
   echo "Chroot environment $save_chroot_name saved!"
 
