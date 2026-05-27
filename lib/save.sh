@@ -28,6 +28,8 @@ save_chroot() {
   local chroot_bind_ro=$(echo "$chroot_params" | awk '{print $7}')
   local chroot_bind_rw=$(echo "$chroot_params" | awk '{print $8}')
   local chroot_user=$(echo "$chroot_params" | awk '{print $9}')
+  local chroot_version=$(echo "$chroot_params" | awk '{print $10}')
+  local chroot_arch=$(echo "$chroot_params" | awk '{print $11}')
 
   local chroot_path="${chroot_dir}/${chroot_name}"
   local save_chroot_name="$chroot_name"
@@ -74,7 +76,7 @@ save_chroot() {
   # Save metadata for restoration (strip 'default' from mount_private—it's always auto-applied)
   local saved_mount_private=$(echo "$chroot_mount_private" | sed 's/\bdefault\b//g' | sed 's/^,//;s/,$//' | tr ',' ' ' | xargs echo | tr ' ' ',')
   [ -z "$saved_mount_private" ] && saved_mount_private="none"
-  echo "$save_chroot_name $chroot_dir $chroot_type $chroot_shell $saved_mount_private $chroot_mount_shared $chroot_bind_ro $chroot_bind_rw $chroot_user" >"$CHROOT_CACHE_DIR/${save_chroot_name}.meta"
+  echo "$save_chroot_name $chroot_dir $chroot_type $chroot_shell $saved_mount_private $chroot_mount_shared $chroot_bind_ro $chroot_bind_rw $chroot_user $chroot_version $chroot_arch" >"$CHROOT_CACHE_DIR/${save_chroot_name}.meta"
 
   echo "Chroot environment $save_chroot_name saved!"
 

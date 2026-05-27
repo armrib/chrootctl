@@ -3,36 +3,12 @@
 create_debian() {
   if [ -n "${1:-}" ]; then
     readonly chroot_path=$1
-    shift
   else
     echo "Missing chroot path"
-    show_help_create_debian
     exit 1
   fi
 
-  local suite="stable"
-
-  while [ "$#" -gt 0 ]; do
-    case "$1" in
-    -s | --suite)
-      suite="$2"
-      shift 2
-      ;;
-    -h | --help)
-      show_help_create_debian
-      exit 0
-      ;;
-    *)
-      if [ -n "${1:-}" ]; then
-        echo "Unknown option ($1)"
-        show_help_create_debian
-        exit 1
-      else
-        shift
-      fi
-      ;;
-    esac
-  done
+  local suite="${2:-stable}"
 
   if [ -f "$DIST_CACHE_DIR/debian-${suite}.tar.gz" ]; then
     echo "Using existing Debian chroot tarball"

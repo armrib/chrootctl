@@ -51,6 +51,8 @@ create_chroot() {
   local chroot_shell="/bin/sh"
   local chroot_user="none"
   local chroot_env=""
+  local chroot_version="latest"
+  local chroot_arch=""
 
   case "${1:-}" in
   -h | --help)
@@ -77,6 +79,8 @@ create_chroot() {
           chroot_bind_ro=$(echo "$_meta"       | awk '{print $7}' | tr ',' ' ')
           chroot_bind_rw=$(echo "$_meta"       | awk '{print $8}' | tr ',' ' ')
           chroot_user=$(echo "$_meta"  | awk '{print $9}')
+          chroot_version=$(echo "$_meta" | awk '{print $10}')
+          chroot_arch=$(echo "$_meta" | awk '{print $11}')
         fi
         break
       fi
@@ -136,6 +140,18 @@ create_chroot() {
       chroot_packages="${chroot_packages:-},$2"
       shift 2
       ;;
+    --version)
+      chroot_version="$2"
+      shift 2
+      ;;
+    --arch)
+      chroot_arch="$2"
+      shift 2
+      ;;
+    --suite)
+      chroot_version="$2"
+      shift 2
+      ;;
     *)
       local args="${args:-}$1 "
       shift
@@ -154,11 +170,11 @@ create_chroot() {
     case "$chroot_type" in
     alpine)
       source "$LIB/create/alpine.sh"
-      create_alpine "$chroot_path"
+      create_alpine "$chroot_path" "$chroot_version" "$chroot_arch"
       ;;
     debian)
       source "$LIB/create/debian.sh"
-      create_debian "${chroot_path}"
+      create_debian "$chroot_path" "$chroot_suite"
       ;;
     arch)
       source "$LIB/create/arch.sh"
@@ -213,11 +229,7 @@ create_chroot() {
   source "$LIB/utils/trim.sh"
   # Mounts all given read-only mount points
   local private_mounts=""
-  local mount_list="$chroot_mount_private"
-  if [ -z "$chroot_mount_private" ] || ! echo "$chroot_mount_private" | grep -qw "default"; then
-    mount_list="default $chroot_mount_private"
-  fi
-  for mount_private in $mount_list; do
+  for mount_private in default ${chroot_mount_private:-}; do
     [ "$mount_private" = "none" ] && continue
     case "$mount_private" in
     default)
@@ -383,7 +395,7 @@ EOF
     chroot "$chroot_path" chown "$chroot_user:$chroot_user" "/home/$chroot_user" "/home/$chroot_user/.profile"
   fi
 
-  echo "$chroot_name $chroot_dir $chroot_type $chroot_shell $chroot_mount_private $chroot_mount_shared $chroot_bind_ro $chroot_bind_rw $chroot_user" >>"$DB"
+  echo "$chroot_name $chroot_dir $chroot_type $chroot_shell $chroot_mount_private $chroot_mount_shared $chroot_bind_ro $chroot_bind_rw $chroot_user $chroot_version $chroot_arch" >>"$DB"
 
   echo "Chroot environment $chroot_name created successfully."
   echo "Enter the chroot with '$PROGRAM_NAME enter $chroot_name'."
@@ -393,9 +405,12 @@ show_help_create() {
   printf '%b\n' "${BOLD}${BLUE}Chrootctl create v${VERSION}${NC}"
   printf '%b\n' "${BOLD}${CYAN}Usage:${NC} $PROGRAM_NAME create [options]"
   printf '%b\n' "${BOLD}${CYAN}Options:${NC}"
-  printf '%b\n' "  ${GREEN}-t, --type${NC}      <type>  Type of chroot environment (alpine, debian) (default: alpine)"
-  printf '%b\n' "  ${GREEN}-d, --dir${NC}       <path>  Path to the chroot environment (default: /var/lib/chrootctl)"
-  printf '%b\n' "  ${GREEN}--shell${NC}         <shell> Default shell to use (default: /bin/sh)"
+  printf '%b\n' "  ${GREEN}-t, --type${NC}      <type>    Type of chroot environment (alpine, debian) (default: alpine)"
+  printf '%b\n' "  ${GREEN}--version${NC}       <ver>     Distribution version/suite (Alpine: X.Y.Z/latest, Debian: stable/testing)"
+  printf '%b\n' "  ${GREEN}--suite${NC}         <suite>   Alias for --version (Debian suite: stable, testing, etc.)"
+  printf '%b\n' "  ${GREEN}--arch${NC}          <arch>    Architecture (auto-detected from uname if not specified)"
+  printf '%b\n' "  ${GREEN}-d, --dir${NC}       <path>    Path to the chroot environment (default: /var/lib/chrootctl)"
+  printf '%b\n' "  ${GREEN}--shell${NC}         <shell>   Default shell to use (default: /bin/sh)"
   printf '%b\n' "  ${GREEN}--mount-private${NC} <path>  Private mount point (default, [path])"
   printf '%b\n' "  ${GREEN}--mount-shared${NC}  <path>  Shared mount point"
   printf '%b\n' "  ${GREEN}--bind-ro${NC}       <src:dst> Bind mount read-only (source:destination)"

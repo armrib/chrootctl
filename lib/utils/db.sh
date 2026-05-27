@@ -9,12 +9,16 @@ chroot_exists() {
     local dir=$(echo "$line" | awk '{print $2}')
     local type=$(echo "$line" | awk '{print $3}')
     local shell=$(echo "$line" | awk '{print $4}')
+    local version=$(echo "$line" | awk '{print $10}')
+    local arch=$(echo "$line" | awk '{print $11}')
     if [ "$name" = "$1" ]; then
       case "$output" in
       path) echo "${dir}/${name}" ;;
       dir) echo "$dir" ;;
       type) echo "$type" ;;
       shell) echo "$shell" ;;
+      version) echo "$version" ;;
+      arch) echo "$arch" ;;
       all) echo "$line" ;;
       *) echo "$name" ;;
       esac
