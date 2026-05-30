@@ -188,30 +188,6 @@ create_chroot() {
     esac
   fi
 
-  if [ -n "${chroot_packages:-}" ]; then
-    local pkgs
-    pkgs=$(echo "$chroot_packages" | sed 's/^,//' | tr ',' ' ')
-
-    # Set up DNS in the chroot for package installation
-    if [ ! -f "$chroot_path/etc/resolv.conf" ] || [ ! -s "$chroot_path/etc/resolv.conf" ]; then
-      cp /etc/resolv.conf "$chroot_path/etc/resolv.conf" 2>/dev/null || true
-    fi
-
-    info "Installing packages: $pkgs"
-    case "$chroot_type" in
-    alpine)
-      chroot "$chroot_path" apk add --no-cache $pkgs || {
-        error "Failed to install packages: $pkgs"
-        exit 1
-      }
-      ;;
-    *)
-      error "Package installation not supported for $chroot_type"
-      exit 1
-      ;;
-    esac
-  fi
-
   if [ "$chroot_user" != "none" ]; then
     case "$chroot_type" in
     alpine)
@@ -238,6 +214,10 @@ create_chroot() {
       mount_bind_private /dev "$chroot_path/dev"
       mount_bind_private /sys "$chroot_path/sys"
       [ "$chroot_type" = "arch" ] && mount_bind_private /dev/pts "$chroot_path/dev/pts"
+      if [ -f /etc/resolv.conf ]; then
+        rm -f "$chroot_path/etc/resolv.conf" 2>/dev/null || true
+        touch "$chroot_path/etc/resolv.conf" 2>/dev/null && mount -v --bind --make-private -o ro /etc/resolv.conf "$chroot_path/etc/resolv.conf" || true
+      fi
       private_mounts="$private_mounts default"
       ;;
     /*)
@@ -246,6 +226,7 @@ create_chroot() {
       /proc*) echo "Mount /proc already mounted by default!" ;;
       /dev*) echo "Mount /dev already mounted by default!" ;;
       /sys*) echo "Mount /sys already mounted by default!" ;;
+      /etc/resolv.conf) echo "Mount /etc/resolv.conf already mounted by default!" ;;
       *)
         mount_bind_private "$mount_private" "${chroot_path}${mount_private}"
         private_mounts="$private_mounts $mount_private"
@@ -318,6 +299,26 @@ create_chroot() {
   done
   bind_ro_list=$(trim "$bind_ro_list")
   chroot_bind_ro=$(echo ${bind_ro_list:-none} | tr ' ' ',')
+
+  # Install packages after mounts are set up (so DNS works)
+  if [ -n "${chroot_packages:-}" ]; then
+    local pkgs
+    pkgs=$(echo "$chroot_packages" | sed 's/^,//' | tr ',' ' ')
+
+    info "Installing packages: $pkgs"
+    case "$chroot_type" in
+    alpine)
+      chroot "$chroot_path" apk add --no-cache $pkgs || {
+        error "Failed to install packages: $pkgs"
+        exit 1
+      }
+      ;;
+    *)
+      error "Package installation not supported for $chroot_type"
+      exit 1
+      ;;
+    esac
+  fi
 
   # Handle read-write bind mounts (source:destination)
   local bind_rw_list=""
