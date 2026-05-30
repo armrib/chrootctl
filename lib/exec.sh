@@ -47,12 +47,14 @@ exec_in_chroot() {
 
   local chroot_dir=$(echo "$chroot_params" | awk '{print $2}')
   local chroot_type=$(echo "$chroot_params" | awk '{print $3}')
+  local chroot_shell=$(echo "$chroot_params" | awk '{print $4}')
   local chroot_mount_private=$(echo "$chroot_params" | awk '{print $5}')
   local chroot_mount_shared=$(echo "$chroot_params" | awk '{print $6}')
   local chroot_bind_ro=$(echo "$chroot_params" | awk '{print $7}')
   local chroot_bind_rw=$(echo "$chroot_params" | awk '{print $8}')
   local chroot_user=$(echo "$chroot_params" | awk '{print $9}')
   chroot_user="${chroot_user:-none}"
+  chroot_shell="${chroot_shell:-/bin/sh}"
 
   local chroot_path="${chroot_dir}/${chroot_name}"
 
@@ -120,17 +122,30 @@ exec_in_chroot() {
   unset bind_spec bind_src bind_dest
 
   echo "Executing command in chroot environment $chroot_name..."
-  if [ "$chroot_user" != "none" ] && [ -n "$chroot_user" ]; then
+
+  local su_user="root"
+  [ "$chroot_user" != "none" ] && [ -n "$chroot_user" ] && su_user="$chroot_user"
+
+  if [ "$#" -eq 1 ]; then
+    local cmd="$1"
+    # Escape single quotes in the command for safe passing through shell layers
+    local escaped_cmd=$(printf '%s\n' "$cmd" | sed "s/'/'\\\\''/g")
     if [ -n "$chroot_env" ]; then
-      chroot "$chroot_path" su - "$chroot_user" -c "$chroot_env $*"
+      chroot "$chroot_path" su - "$su_user" -c "env $chroot_env $chroot_shell -c '$escaped_cmd'"
     else
-      chroot "$chroot_path" su - "$chroot_user" -c "$*"
+      chroot "$chroot_path" su - "$su_user" -c "$chroot_shell -c '$escaped_cmd'"
     fi
   else
+    local full_cmd=""
+    for arg in "$@"; do
+      # Escape single quotes: ' -> '\''
+      escaped=$(printf '%s\n' "$arg" | sed "s/'/'\\\\''/g")
+      full_cmd="$full_cmd '$escaped'"
+    done
     if [ -n "$chroot_env" ]; then
-      chroot "$chroot_path" env $chroot_env "$@"
+      chroot "$chroot_path" su - "$su_user" -c "env $chroot_env$full_cmd"
     else
-      chroot "$chroot_path" "$@"
+      chroot "$chroot_path" su - "$su_user" -c "$full_cmd"
     fi
   fi
 }
