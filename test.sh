@@ -19,15 +19,21 @@ cleanup_stray_mounts() {
       fi
     done
   fi
+
+  # Also remove from database if it exists
+  local chroot_name=$(basename "$chroot_path")
+  if [ -f ".db" ]; then
+    sed -i "/^${chroot_name} /d" ".db" 2>/dev/null || true
+  fi
 }
 
-# Clean up any stray test mounts before starting
-for test_dir in /tmp/test /tmp/test-mount-combo /tmp/test-user /tmp/alpine; do
+# Clean up any stray test mounts before starting (both /tmp and default /var/lib/chrootctl)
+for test_dir in /var/lib/chrootctl/test /var/lib/chrootctl/test-mount-combo /var/lib/chrootctl/test-user /var/lib/chrootctl/test-env /var/lib/chrootctl/test-pkg /var/lib/chrootctl/test-is-chroot /var/lib/chrootctl/test-temp-env /tmp/test /tmp/test-mount-combo /tmp/test-user /tmp/alpine; do
   cleanup_stray_mounts "$test_dir" || true
 done
 
 # Cleanup on exit
-trap 'cleanup_stray_mounts /tmp/test; cleanup_stray_mounts /tmp/test-mount-combo; cleanup_stray_mounts /tmp/test-user; cleanup_stray_mounts /tmp/alpine' EXIT
+trap 'for d in /var/lib/chrootctl/test /var/lib/chrootctl/test-mount-combo /var/lib/chrootctl/test-user /var/lib/chrootctl/test-env /var/lib/chrootctl/test-pkg /var/lib/chrootctl/test-is-chroot /var/lib/chrootctl/test-temp-env /tmp/test /tmp/test-mount-combo /tmp/test-user /tmp/alpine; do cleanup_stray_mounts "$d"; done' EXIT
 
 for file in .cache/dist/alpine.tar.gz .cache/chroot/test.tar.gz; do
   rm -f "$file"
@@ -94,12 +100,12 @@ fi
 ./main.sh create test-env --env DEBUG=1,LOG_LEVEL=info
 
 # Verify env vars are in .profile
-if ! grep -q 'export DEBUG="1"' /tmp/test-env/root/.profile; then
+if ! grep -q 'export DEBUG="1"' /var/lib/chrootctl/test-env/root/.profile; then
   echo "Env var test failed: DEBUG not found in .profile"
   exit 1
 fi
 
-if ! grep -q 'export LOG_LEVEL="info"' /tmp/test-env/root/.profile; then
+if ! grep -q 'export LOG_LEVEL="info"' /var/lib/chrootctl/test-env/root/.profile; then
   echo "Env var test failed: LOG_LEVEL not found in .profile"
   exit 1
 fi
@@ -152,5 +158,33 @@ if ! echo 'is_chroot status' | ./main.sh enter test-is-chroot | grep -q "Inside 
 fi
 
 ./main.sh delete test-is-chroot
+
+# Test exec with shell syntax (single argument)
+./main.sh create test-exec
+
+# Verify shell syntax works with && operator
+if ! ./main.sh exec test-exec "echo first && echo second" | grep -q "first"; then
+  echo "Exec shell syntax test failed: first output not found"
+  exit 1
+fi
+
+if ! ./main.sh exec test-exec "echo first && echo second" | grep -q "second"; then
+  echo "Exec shell syntax test failed: second output not found"
+  exit 1
+fi
+
+# Verify env vars are accessible in exec with shell syntax
+if ! ./main.sh exec test-exec --env TEST_VAR=testvalue 'echo "$TEST_VAR"' | grep -q "testvalue"; then
+  echo "Exec env var test failed: TEST_VAR not accessible"
+  exit 1
+fi
+
+# Verify /etc/profile is sourced (CHROOTCTL_CHROOT should be set)
+if ! ./main.sh exec test-exec 'test -n "$CHROOTCTL_CHROOT"' 2>/dev/null; then
+  echo "Exec profile sourcing test failed: CHROOTCTL_CHROOT not set"
+  exit 1
+fi
+
+./main.sh delete test-exec
 
 echo "Test passed!"
